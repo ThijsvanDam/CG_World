@@ -1,0 +1,5 @@
+﻿  main.cpp
+c:\users\thijs\onedrive\desktop\computer graphics thijs van dam\program1\main.cpp(161): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\thijs\onedrive\desktop\computer graphics thijs van dam\program1\main.cpp(162): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+c:\users\thijs\onedrive\desktop\computer graphics thijs van dam\program1\main.cpp(163): warning C4244: 'initializing': conversion from 'float' to 'int', possible loss of data
+  Program1.vcxproj -> C:\Users\Thijs\OneDrive\Desktop\Computer Graphics Thijs van Dam\Debug\Program1.exe
