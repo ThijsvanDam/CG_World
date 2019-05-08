@@ -1,5 +1,6 @@
 ﻿  main.cpp
-c:\users\thijs-pc\source\repos\cg_world\program1\main.cpp(141): warning C4200: nonstandard extension used: zero-sized array in struct/union
-  c:\users\thijs-pc\source\repos\cg_world\program1\main.cpp(141): note: This member will be ignored by a defaulted constructor or copy/move assignment operator
-c:\users\thijs-pc\source\repos\cg_world\program1\main.cpp(337): error C2664: 'void glutPassiveMotionFunc(void (__cdecl *)(int,int))': cannot convert argument 1 from 'void (__cdecl *)(float,float)' to 'void (__cdecl *)(int,int)'
-  c:\users\thijs-pc\source\repos\cg_world\program1\main.cpp(337): note: None of the functions with this name in scope match the target type
+c:\users\thijs-pc\source\repos\cg_world\program1\main.cpp(145): warning C4200: nonstandard extension used: zero-sized array in struct/union
+  c:\users\thijs-pc\source\repos\cg_world\program1\main.cpp(145): note: This member will be ignored by a defaulted constructor or copy/move assignment operator
+c:\users\thijs-pc\source\repos\cg_world\program1\main.cpp(212): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\thijs-pc\source\repos\cg_world\program1\main.cpp(213): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+  Program1.vcxproj -> C:\Users\Thijs-PC\Source\Repos\CG_World\Debug\Program1.exe

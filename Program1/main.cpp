@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <map>
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -84,9 +85,9 @@ float mouseDeltaY = 0.0f;
 // These variables will change if the key state changes
 float cameraEyeDeltaX = 0.0f, cameraEyeDeltaZ = 0.0f, cameraCenterDeltaY = 0.0f, cameraCenterDeltaX = 0.0f;
 
-float mouseMovementSpeed = 0.20f;
+float mouseMovementSpeed = 0.2f;
 float movementSpeed = 0.5f;
-float lookAroundSpeed = 0.1f;
+float lookAroundSpeed = .1f;
 
 void switchCameraMode();
 
@@ -95,9 +96,17 @@ void switchCameraMode();
 //--------------------------------------------------------------------------------
 
 struct Model {
+	// Mesh variables
 	vector<glm::vec3> vertices;
 	vector<glm::vec3> normals;
 	vector<glm::vec2> uvs;
+
+	glm::mat4 model;
+	glm::mat4 mv;
+	Material material;
+	GLuint vao;
+	GLuint textureID;
+	bool applyTexture;
 };
 
 struct LightSource {
@@ -117,7 +126,6 @@ struct Camera
 	glm::vec3 center;
 	glm::vec3 up = { 0.0, 0.1, 0.0 };
 } cameras[2];
-
 
 enum class CameraMode
 {
@@ -139,8 +147,41 @@ glm::mat4 mvp;
 CameraMode cameraMode = CameraMode::View;
 Camera camera;
 
+float rightX = -camera.center.z;
+float rightZ = camera.center.x;
+
+struct TooManyModelsException : public exception {
+	const char * what() const throw () {
+		return "TooManyModelsException";
+	}
+};
+
 class ModelHandler {
-	Model models[];
+	std::map<std::string, Model> models;
+	//Model models[30];
+	int number = 0;
+
+	ModelHandler() {
+
+	}
+
+	void addModel(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, bool applyTexture) {
+		this->addModel({ vertices, normals, uvs, applyTexture });
+	}
+
+	void addModel(Model model) {
+		this->addToArray(model);
+	}
+
+	int getModelCount() {
+		return number + 1;
+	}
+private:
+	void addToArray(Model model) {
+		if (number == 29)
+			throw new TooManyModelsException();
+		models[number++] = model;
+	}
 };
 
 //--------------------------------------------------------------------------------
@@ -192,7 +233,6 @@ void releaseKeyHandler(unsigned char key, int a, int b)
 	case 'j': cameraCenterDeltaX = 0.0f; 
 		break;
 	}
-
 }
 
 void mouseHandler(int x, int y)
@@ -210,13 +250,8 @@ void mouseHandler(int x, int y)
 		}
 		mouseOriginX = x;
 		mouseOriginY = y;
-		if (mouseDeltaX != 0.0f)
-			cout << mouseOriginX << "  " << mouseDeltaX << endl;
 	}
 }
-
-float rightX = -camera.center.z;
-float rightZ = camera.center.x;
 
 //--------------------------------------------------------------------------------
 // Position and Camera Handling
