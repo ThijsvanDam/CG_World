@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 
 #include <GL/glew.h>
 #include <GL/freeglut.h>
@@ -21,19 +22,6 @@ const int WIDTH = 800, HEIGHT = 600;
 const char * fragshader_name = "fragmentshader.fsh";
 const char * vertexshader_name = "vertexshader.vsh";
 unsigned const int DELTA = 10;
-
-
-//--------------------------------------------------------------------------------
-// Variables
-//--------------------------------------------------------------------------------
-
-GLuint program_id;
-GLuint vao;
-GLuint uniform_mvp;
-
-glm::mat4 model, view, projection;
-glm::mat4 mvp;
-
 
 //--------------------------------------------------------------------------------
 // Mesh variables
@@ -85,8 +73,43 @@ GLushort cube_elements[] = {
     4,5,5,6,6,7,7,4   //back
 };
 
+
+/// These variables will change if the mouse moves
+float mouseOriginX = -1;
+float mouseOriginY = -1;
+
+float mouseDeltaX = 0.0f;
+float mouseDeltaY = 0.0f;
+
+// These variables will change if the key state changes
+float cameraEyeDeltaX = 0.0f, cameraEyeDeltaZ = 0.0f, cameraCenterDeltaY = 0.0f, cameraCenterDeltaX = 0.0f;
+
+float mouseMovementSpeed = 0.20f;
+float movementSpeed = 0.5f;
+float lookAroundSpeed = 0.1f;
+
 void switchCameraMode();
 
+//--------------------------------------------------------------------------------
+// Type definitions
+//--------------------------------------------------------------------------------
+
+struct Model {
+	vector<glm::vec3> vertices;
+	vector<glm::vec3> normals;
+	vector<glm::vec2> uvs;
+};
+
+struct LightSource {
+	glm::vec3 position;
+};
+
+struct Material {
+	glm::vec3 ambientColor;
+	glm::vec3 diffuseColor;
+	glm::vec3 specular;
+	float power;
+};
 
 struct Camera
 {
@@ -95,17 +118,30 @@ struct Camera
 	glm::vec3 up = { 0.0, 0.1, 0.0 };
 } cameras[2];
 
+
 enum class CameraMode
 {
 	View = 0, Walk = 1
 };
 
+//--------------------------------------------------------------------------------
+// Variables
+//--------------------------------------------------------------------------------
+
+GLuint program_id;
+GLuint vao;
+GLuint uniform_mvp;
+
+glm::mat4 model, view, projection;
+glm::mat4 mvp;
+
 
 CameraMode cameraMode = CameraMode::View;
 Camera camera;
 
-float movementSpeed = 0.5f;
-float lookAroundSpeed = 0.1f;
+class ModelHandler {
+	Model models[];
+};
 
 //--------------------------------------------------------------------------------
 // Keyboard and mouse handling
@@ -126,41 +162,38 @@ void pressKeyHandler(unsigned char key, int a, int b)
 
 	if(cameraMode == CameraMode::Walk)
 	{
-	/*	switch (key)
+		switch (key)
 		{
-		case 'w': deltaMoveZ =  movementSpeed; break;
-		case 's': deltaMoveZ = -movementSpeed; break;
-		case 'd': deltaMoveX =  movementSpeed; break;
-		case 'a': deltaMoveX = -movementSpeed; break;
-		case 'i': deltaAngleY =  lookAroundSpeed; break;
-		case 'k': deltaAngleY = -lookAroundSpeed; break;
-		case 'l': deltaAngleX =  lookAroundSpeed; break;
-		case 'j': deltaAngleX = -lookAroundSpeed; break;
-		}*/
+		case 'w': cameraEyeDeltaZ =  movementSpeed; break;
+		case 's': cameraEyeDeltaZ = -movementSpeed; break;
+		case 'd': cameraEyeDeltaX =  movementSpeed; break;
+		case 'a': cameraEyeDeltaX = -movementSpeed; break;
+		case 'i': cameraCenterDeltaY =  lookAroundSpeed; break;
+		case 'k': cameraCenterDeltaY = -lookAroundSpeed; break;
+		case 'l': cameraCenterDeltaX =  lookAroundSpeed; break;
+		case 'j': cameraCenterDeltaX = -lookAroundSpeed; break;
+		}
 	}
 }
 
 void releaseKeyHandler(unsigned char key, int a, int b)
 {
-	//switch (key) {
-	//case 'w':
-	//case 's':deltaMoveZ = 0; break;
-	//case 'd':
-	//case 'a':deltaMoveX = -0; break;
-	//case 'i':
-	//case 'k':deltaAngleY = 0.0f; break;
-	//case 'l':
-	//case 'j':deltaAngleX = 0.0f; break;
-	//}
+	switch (key) {
+	case 'w':
+	case 's': cameraEyeDeltaZ = 0.0f; 
+		break;
+	case 'd':
+	case 'a': cameraEyeDeltaX = 0.0f; 
+		break;
+	case 'i':
+	case 'k': cameraCenterDeltaY = 0.0f; 
+		break;
+	case 'l':
+	case 'j': cameraCenterDeltaX = 0.0f; 
+		break;
+	}
 
 }
-
-int mouseOriginX = -1;
-int mouseOriginY = -1;
-
-int mouseDeltaX = 0.0f;
-int mouseDeltaY = 0.0f;
-int mouseMovementSpeed = 0.15f;
 
 void mouseHandler(int x, int y)
 {
@@ -177,31 +210,37 @@ void mouseHandler(int x, int y)
 		}
 		mouseOriginX = x;
 		mouseOriginY = y;
+		if (mouseDeltaX != 0.0f)
+			cout << mouseOriginX << "  " << mouseDeltaX << endl;
 	}
 }
+
+float rightX = -camera.center.z;
+float rightZ = camera.center.x;
 
 //--------------------------------------------------------------------------------
 // Position and Camera Handling
 //--------------------------------------------------------------------------------
-//void computePos(float deltaMoveX, float deltaMoveZ) {
-//	x += deltaMoveZ * lx * 0.2f;
-//	z += deltaMoveZ * lz * 0.2f;
-//	x += deltaMoveX * rightX * 0.2f;
-//	z += deltaMoveX * rightZ * 0.2f;
-//}
-//
-//void computeDir(float internaldeltaAngleX, float internaldeltaAngleY) {
-//
-//	mouseDeltaX += internaldeltaAngleX + mousedeltaAngleX;
-//	mouseDeltaY += internaldeltaAngleY + mousedeltaAngleY;
-//	mousedeltaAngleX = 0;
-//	mousedeltaAngleY = 0;
-//	lx = sin(angleX);
-//	ly = sin(angleY);
-//	lz = -cos(angleX);
-//	rightX = -lz;
-//	rightZ = lx;
-//}
+void calculateCameraEye(float cameraEyeDeltaX, float cameraEyeDeltaZ) {
+	// Only the X and the Y will be used for 
+	camera.eye.x += (cameraEyeDeltaZ * camera.center.x * 0.2f) + (cameraEyeDeltaX * rightX * 0.2f);
+	camera.eye.z += (cameraEyeDeltaZ * camera.center.z * 0.2f) + (cameraEyeDeltaX * rightZ * 0.2f);
+}
+
+float calculatedAngleForCameraCenterX = 0.0f;
+float calculatedAngleForCameraCenterY = 0.0f;
+
+void calculateCameraCenter(float cameraCenterDeltaX, float cameraCenterDeltaY) {
+	calculatedAngleForCameraCenterX += cameraCenterDeltaX + mouseDeltaX;
+	calculatedAngleForCameraCenterY += cameraCenterDeltaY + mouseDeltaY;
+	mouseDeltaX = 0;
+	mouseDeltaY = 0;
+	camera.center.x =  sin(calculatedAngleForCameraCenterX);
+	camera.center.y =  sin(calculatedAngleForCameraCenterY);
+	camera.center.z = -cos(calculatedAngleForCameraCenterX);
+	rightX = -camera.center.z;
+	rightZ = camera.center.x;
+}
 
 void InitCameras() {
 
@@ -222,7 +261,7 @@ void switchCameraMode()
 {
 	cameraMode = bool(cameraMode) ? CameraMode::View : CameraMode::Walk;
 	camera = cameras[int(cameraMode)];
-}
+} 
 
 
 
@@ -234,6 +273,12 @@ float z = 15.0;
 float offset = 0.5;
 void Render()
 {
+	if (cameraEyeDeltaX || cameraEyeDeltaZ)
+		calculateCameraEye(cameraEyeDeltaX, cameraEyeDeltaZ);
+
+	if (cameraCenterDeltaX || cameraCenterDeltaY || mouseDeltaX || mouseDeltaY)
+			calculateCameraCenter(cameraCenterDeltaX, cameraCenterDeltaY);
+
     glClearColor(0.0, 0.0, 0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -245,7 +290,7 @@ void Render()
 
 	view = glm::lookAt(
 		camera.eye,
-		camera.center,
+		glm::vec3(camera.eye.x + camera.center.x, camera.center.y, camera.eye.z + camera.center.z),
 		camera.up
 	);
 
@@ -283,6 +328,7 @@ void Render(int n)
 void InitGlutGlew(int argc, char **argv)
 {
     glutInit(&argc, argv);
+	glutSetOption(GLUT_MULTISAMPLE, 8);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(WIDTH, HEIGHT);
     glutCreateWindow("Hello OpenGL");
@@ -293,8 +339,11 @@ void InitGlutGlew(int argc, char **argv)
 	glutPassiveMotionFunc(mouseHandler);
 	glutIgnoreKeyRepeat(1);
 	glutKeyboardUpFunc(releaseKeyHandler);
-
     glutTimerFunc(DELTA, Render, 1);
+
+	glEnable(GLUT_MULTISAMPLE);
+	glEnable(GL_DEPTH_TEST);
+	glClear(GL_DEPTH_BUFFER_BIT);
 
     glewInit();
 }
@@ -329,8 +378,6 @@ void InitMatrices()
         glm::vec3(2.0, 2.0, 7.0),
         glm::vec3(0.0, 0.0, 0.0),
         glm::vec3(0.0, 1.0, 0.0));*/
-
-
 
     projection = glm::perspective(
         glm::radians(45.0f),
