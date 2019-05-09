@@ -2,6 +2,8 @@
 #include <vector>
 #include <map>
 
+#include <string.h> 
+
 #include <GL/glew.h>
 #include <GL/freeglut.h>
 
@@ -11,6 +13,8 @@
 #include <glm/gtx/string_cast.hpp>
 
 #include "glsl.h"
+#include "objloader.hpp"
+#include "texture.hpp"
 
 using namespace std;
 
@@ -95,20 +99,6 @@ void switchCameraMode();
 // Type definitions
 //--------------------------------------------------------------------------------
 
-struct Model {
-	// Mesh variables
-	vector<glm::vec3> vertices;
-	vector<glm::vec3> normals;
-	vector<glm::vec2> uvs;
-
-	glm::mat4 model;
-	glm::mat4 mv;
-	Material material;
-	GLuint vao;
-	GLuint textureID;
-	bool applyTexture;
-};
-
 struct LightSource {
 	glm::vec3 position;
 };
@@ -118,6 +108,7 @@ struct Material {
 	glm::vec3 diffuseColor;
 	glm::vec3 specular;
 	float power;
+	bool applied;
 };
 
 struct Camera
@@ -131,6 +122,21 @@ enum class CameraMode
 {
 	View = 0, Walk = 1
 };
+
+// This has to be last because it uses another type def.
+struct Model {
+	// Mesh variables
+	vector<glm::vec3> vertices;
+	vector<glm::vec3> normals;
+	vector<glm::vec2> uvs;
+
+	Material material;
+	glm::mat4 model;
+	glm::mat4 mv;
+	GLuint vao;
+	GLuint textureID;
+};
+
 
 //--------------------------------------------------------------------------------
 // Variables
@@ -150,14 +156,14 @@ Camera camera;
 float rightX = -camera.center.z;
 float rightZ = camera.center.x;
 
-struct TooManyModelsException : public exception {
+struct ModelNotFoundException : public exception {
 	const char * what() const throw () {
-		return "TooManyModelsException";
+		return "ModelNotFoundException";
 	}
 };
 
 class ModelHandler {
-	std::map<std::string, Model> models;
+	std::map<string, Model> models;
 	//Model models[30];
 	int number = 0;
 
@@ -165,22 +171,49 @@ class ModelHandler {
 
 	}
 
-	void addModel(vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs, bool applyTexture) {
-		this->addModel({ vertices, normals, uvs, applyTexture });
+	void addModel(string name, vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs) {
+		this->addModel(name, { vertices, normals, uvs});
 	}
 
-	void addModel(Model model) {
-		this->addToArray(model);
+	void addModel(string name, Model model) {
+		this->models[name] = model;
+	}
+
+	// Should be const chars, else it will error.
+	void loadObject(string name, string objPath, string texturePath) {
+		if (checkModel(name)) {
+			Model model = models[name];
+			bool res = loadOBJ(name.c_str(), model.vertices, model.uvs, model.normals);
+			model.textureID = loadBMP(texturePath.c_str());
+		}
+	}
+
+	void loadMaterialsLight(string name, glm::vec3 ambientColor, glm::vec3 diffuseColor, glm::vec3 specular, int power, bool applied) {
+		if (checkModel(name)) {
+			Model model = models[name];
+			model.material.ambientColor = ambientColor;
+			model.material.diffuseColor = diffuseColor;
+			model.material.specular = specular;
+			model.material.power = power;
+			model.material.applied = applied;
+		}
 	}
 
 	int getModelCount() {
 		return number + 1;
 	}
+
+	void printAll() {
+		for (auto item : models) {
+			cout << item.first;
+		}
+		cout << endl;
+	}
 private:
-	void addToArray(Model model) {
-		if (number == 29)
-			throw new TooManyModelsException();
-		models[number++] = model;
+	bool checkModel(string name) {
+		if (models.find(name) == models.end())
+			return true;
+		throw new ModelNotFoundException();
 	}
 };
 
