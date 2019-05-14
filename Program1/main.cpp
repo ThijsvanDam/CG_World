@@ -137,25 +137,6 @@ struct Model {
 	GLuint textureID;
 };
 
-
-//--------------------------------------------------------------------------------
-// Variables
-//--------------------------------------------------------------------------------
-
-GLuint program_id;
-GLuint vao;
-GLuint uniform_mvp;
-
-glm::mat4 model, view, projection;
-glm::mat4 mvp;
-
-
-CameraMode cameraMode = CameraMode::View;
-Camera camera;
-
-float rightX = -camera.center.z;
-float rightZ = camera.center.x;
-
 struct ModelNotFoundException : public exception {
 	const char * what() const throw () {
 		return "ModelNotFoundException";
@@ -163,20 +144,34 @@ struct ModelNotFoundException : public exception {
 };
 
 class ModelHandler {
+public:
 	std::map<string, Model> models;
 	//Model models[30];
 	int number = 0;
 
-	ModelHandler() {
-
-	}
+	ModelHandler() = default;
 
 	void addModel(string name, vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs) {
-		this->addModel(name, { vertices, normals, uvs});
+		this->addModel(name, { vertices, normals, uvs });
 	}
 
 	void addModel(string name, Model model) {
 		this->models[name] = model;
+	}
+
+	int getModelCount()
+	{
+		return models.size();
+	}
+
+	std::map<string, Model>::iterator getModelsIterator()
+	{
+		return models.begin;
+	}
+
+	std::map<string, Model>::iterator getLastModelIterator()
+	{
+		return models.end;
 	}
 
 	// Should be const chars, else it will error.
@@ -216,6 +211,27 @@ private:
 		throw new ModelNotFoundException();
 	}
 };
+
+
+//--------------------------------------------------------------------------------
+// Variables
+//--------------------------------------------------------------------------------
+
+GLuint shader_id;
+GLuint vao;
+GLuint uniform_mvp;
+
+glm::mat4 model, view, projection;
+glm::mat4 mvp;
+
+CameraMode cameraMode = CameraMode::View;
+Camera camera;
+LightSource light;
+ModelHandler model_handler = ModelHandler();
+
+float rightX = -camera.center.z;
+float rightZ = camera.center.x;
+
 
 //--------------------------------------------------------------------------------
 // Keyboard and mouse handling
@@ -368,7 +384,7 @@ void Render()
     mvp = projection * view * model;
 
     // Send mvp
-    glUseProgram(program_id);
+    glUseProgram(shader_id);
     glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
     glutSwapBuffers();
@@ -430,7 +446,7 @@ void InitShaders()
     char * fragshader = glsl::readFile(fragshader_name);
     GLuint fsh_id = glsl::makeFragmentShader(fragshader);
 
-    program_id = glsl::makeShaderProgram(vsh_id, fsh_id);
+    shader_id = glsl::makeShaderProgram(vsh_id, fsh_id);
 }
 
 
@@ -459,65 +475,146 @@ void InitMatrices()
 // void InitBuffers()
 // Allocates and fills buffers
 //------------------------------------------------------------
+GLuint uniform_mv;
+GLuint uniform_apply_texture;
+GLuint uniform_material_ambient;
+GLuint uniform_material_diffuse;
+GLuint uniform_material_specular;
+GLuint uniform_material_power;
 
 void InitBuffers()
 {
-    GLuint position_id, color_id;
-    GLuint vbo_vertices, vbo_colors;
-    GLuint ibo_elements;
+	GLuint vbo_vertices, vbo_normals, vbo_uvs;
 
-    // vbo for vertices
-    glGenBuffers(1, &vbo_vertices);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+	GLuint position_id = glGetAttribLocation(shader_id, "position");
+	GLuint normal_id = glGetAttribLocation(shader_id, "normal");
+	GLuint uv_id = glGetAttribLocation(shader_id, "uv");
 
-    // vbo for colors
-    glGenBuffers(1, &vbo_colors);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_colors);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+	// Attrach the program from shader_id so we can set uniform vars
+	glUseProgram(shader_id);
 
-    // vbo for elements
-    glGenBuffers(1, &ibo_elements);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_elements);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_elements),
-        cube_elements, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	// Create and set UVs (uniform vars)
+	uniform_mv = glGetUniformLocation(shader_id, "mv");
+	GLuint uniform_proj = glGetUniformLocation(shader_id, "projection");
+	GLuint uniform_light_pos = glGetUniformLocation(shader_id, "lightPos");
+	uniform_apply_texture = glGetUniformLocation(shader_id, "applyTexture");
+	uniform_material_ambient = glGetUniformLocation(shader_id, "matAmbient");
+	uniform_material_diffuse = glGetUniformLocation(shader_id, "matDiffuse");
+	uniform_material_specular = glGetUniformLocation(shader_id, "matSpecular");
+	uniform_material_power = glGetUniformLocation(shader_id, "matPower");
 
-    // Get vertex attributes
-    position_id = glGetAttribLocation(program_id, "position");
-    color_id = glGetAttribLocation(program_id, "color");
+	// Fill uniform vars
+	glUniformMatrix4fv(uniform_proj, 1, GL_FALSE, glm::value_ptr(projection));
+	glUniform3fv(uniform_light_pos, 1, glm::value_ptr(light.position));
 
-    // Allocate memory for vao
-    glGenVertexArrays(1, &vao);
+	for(std::map<string, Model>::iterator modelMap = model_handler.getModelsIterator(); 
+		modelMap != model_handler.getLastModelIterator();
+		modelMap++)
+	{
+		Model model = modelMap->second;
 
-    // Bind to vao
-    glBindVertexArray(vao);
+		// vbo for vertices
+		glGenBuffers(1, &vbo_vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+		glBufferData(GL_ARRAY_BUFFER, model_handler.getModelCount() * sizeof(glm::vec3),
+			&model.vertices[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // Bind vertices to vao
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-    glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(position_id);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+		// vbo for normals
+		glGenBuffers(1, &vbo_normals);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+		glBufferData(GL_ARRAY_BUFFER, model.normals.size() * sizeof(glm::vec3),
+			&model.normals[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // Bind colors to vao
-    glBindBuffer(GL_ARRAY_BUFFER, vbo_colors);
-    glVertexAttribPointer(color_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(color_id);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+		// vbo for uvs
+		glGenBuffers(1, &vbo_uvs);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
+		glBufferData(GL_ARRAY_BUFFER, model.uvs.size() * sizeof(glm::vec2),
+			&model.uvs[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // Bind elements to vao
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_elements);
-    
-    // Stop bind to vao
-    glBindVertexArray(0);
+		glGenVertexArrays(1, &model.vao);
+		glBindVertexArray(model.vao);
 
-    // Make uniform var
-    uniform_mvp = glGetUniformLocation(program_id, "mvp");
+		// Bind vertices to vao
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+		glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(position_id);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    // Fill uniform var
-    glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+		glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(normal_id);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
+		glVertexAttribPointer(uv_id, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(uv_id);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		glBindVertexArray(0);
+	}
+
+
+	////**************************** old InitBuffer
+
+	//GLuint vbo_colors;
+
+ //   GLuint ibo_elements;
+
+ //   // vbo for vertices
+ //   glGenBuffers(1, &vbo_vertices);
+ //   glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+ //   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+ //   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+ //   // vbo for colors
+ //   glGenBuffers(1, &vbo_colors);
+ //   glBindBuffer(GL_ARRAY_BUFFER, vbo_colors);
+ //   glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
+ //   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+ //   // vbo for elements
+ //   glGenBuffers(1, &ibo_elements);
+ //   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_elements);
+ //   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_elements),
+ //       cube_elements, GL_STATIC_DRAW);
+ //   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+ //   // Get vertex attributes
+ //   position_id = glGetAttribLocation(shader_id, "position");
+ //   color_id = glGetAttribLocation(shader_id, "color");
+
+ //   // Allocate memory for vao
+ //   glGenVertexArrays(1, &vao);
+
+ //   // Bind to vao
+ //   glBindVertexArray(vao);
+
+ //   // Bind vertices to vao
+ //   glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+ //   glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+ //   glEnableVertexAttribArray(position_id);
+ //   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+ //   // Bind colors to vao
+ //   glBindBuffer(GL_ARRAY_BUFFER, vbo_colors);
+ //   glVertexAttribPointer(color_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+ //   glEnableVertexAttribArray(color_id);
+ //   glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+ //   // Bind elements to vao
+ //   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_elements);
+ //   
+ //   // Stop bind to vao
+ //   glBindVertexArray(0);
+
+ //   // Make uniform var
+ //   uniform_mvp = glGetUniformLocation(shader_id, "mvp");
+
+ //   // Fill uniform var
+ //   glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 }
 
 
