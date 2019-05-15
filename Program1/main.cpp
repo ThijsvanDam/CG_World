@@ -2,10 +2,9 @@
 #include <vector>
 #include <map>
 
-#include <string.h> 
-
 #include <GL/glew.h>
 #include <GL/freeglut.h>
+
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -15,6 +14,8 @@
 #include "glsl.h"
 #include "objloader.hpp"
 #include "texture.hpp"
+#include "ModelHandler.h"
+#include "Model.cpp"
 
 using namespace std;
 
@@ -103,13 +104,6 @@ struct LightSource {
 	glm::vec3 position;
 };
 
-struct Material {
-	glm::vec3 ambientColor;
-	glm::vec3 diffuseColor;
-	glm::vec3 specular;
-	float power;
-	bool applied;
-};
 
 struct Camera
 {
@@ -123,94 +117,8 @@ enum class CameraMode
 	View = 0, Walk = 1
 };
 
-// This has to be last because it uses another type def.
-struct Model {
-	// Mesh variables
-	vector<glm::vec3> vertices;
-	vector<glm::vec3> normals;
-	vector<glm::vec2> uvs;
 
-	Material material;
-	glm::mat4 model;
-	glm::mat4 mv;
-	GLuint vao;
-	GLuint textureID;
-};
 
-struct ModelNotFoundException : public exception {
-	const char * what() const throw () {
-		return "ModelNotFoundException";
-	}
-};
-
-class ModelHandler {
-public:
-	std::map<string, Model> models;
-	//Model models[30];
-	int number = 0;
-
-	ModelHandler() = default;
-
-	void addModel(string name, vector<glm::vec3> vertices, vector<glm::vec3> normals, vector<glm::vec2> uvs) {
-		this->addModel(name, { vertices, normals, uvs });
-	}
-
-	void addModel(string name, Model model) {
-		this->models[name] = model;
-	}
-
-	int getModelCount()
-	{
-		return models.size();
-	}
-
-	std::map<string, Model>::iterator getModelsIterator()
-	{
-		return models.begin;
-	}
-
-	std::map<string, Model>::iterator getLastModelIterator()
-	{
-		return models.end;
-	}
-
-	// Should be const chars, else it will error.
-	void loadObject(string name, string objPath, string texturePath) {
-		if (checkModel(name)) {
-			Model model = models[name];
-			bool res = loadOBJ(name.c_str(), model.vertices, model.uvs, model.normals);
-			model.textureID = loadBMP(texturePath.c_str());
-		}
-	}
-
-	void loadMaterialsLight(string name, glm::vec3 ambientColor, glm::vec3 diffuseColor, glm::vec3 specular, int power, bool applied) {
-		if (checkModel(name)) {
-			Model model = models[name];
-			model.material.ambientColor = ambientColor;
-			model.material.diffuseColor = diffuseColor;
-			model.material.specular = specular;
-			model.material.power = power;
-			model.material.applied = applied;
-		}
-	}
-
-	int getModelCount() {
-		return number + 1;
-	}
-
-	void printAll() {
-		for (auto item : models) {
-			cout << item.first;
-		}
-		cout << endl;
-	}
-private:
-	bool checkModel(string name) {
-		if (models.find(name) == models.end())
-			return true;
-		throw new ModelNotFoundException();
-	}
-};
 
 
 //--------------------------------------------------------------------------------
@@ -412,6 +320,7 @@ void Render(int n)
 void InitGlutGlew(int argc, char **argv)
 {
     glutInit(&argc, argv);
+
 	glutSetOption(GLUT_MULTISAMPLE, 8);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(WIDTH, HEIGHT);
@@ -423,7 +332,7 @@ void InitGlutGlew(int argc, char **argv)
 	glutPassiveMotionFunc(mouseHandler);
 	glutIgnoreKeyRepeat(1);
 	glutKeyboardUpFunc(releaseKeyHandler);
-    glutTimerFunc(DELTA, Render, 1);
+    glutTimerFunc(DELTA, Render, 0);
 
 	glEnable(GLUT_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
@@ -512,7 +421,6 @@ void InitBuffers()
 		modelMap++)
 	{
 		Model model = modelMap->second;
-
 		// vbo for vertices
 		glGenBuffers(1, &vbo_vertices);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
@@ -555,8 +463,6 @@ void InitBuffers()
 
 		glBindVertexArray(0);
 	}
-
-
 	////**************************** old InitBuffer
 
 	//GLuint vbo_colors;
@@ -617,12 +523,33 @@ void InitBuffers()
  //   glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 }
 
+void InitObjects()
+{
+	light.position = glm::vec3(120.0, 120.0, 120.0);
+
+	string oc = "Old_cottage";
+	model_handler.initModel(oc);
+	/*Model* m = model_handler.getModel(oc);
+	string a = "objects/sphere.obj";
+	bool res = loadOBJ(a.c_str(), m->vertices, m->uvs, m->normals);*/
+
+	model_handler.loadObject(oc, "objects/teapot.obj", "textures/Yellobrk.bmp");
+	model_handler.loadMaterialsLight(
+		oc,
+		glm::vec3(0.6, 0.6, 0.6),
+		glm::vec3(0.6, 0.6, 0.6),
+		glm::vec3(0.5),
+		128,
+		true
+	);
+}
 
 int main(int argc, char ** argv)
 {
     InitGlutGlew(argc, argv);
     InitShaders();
     InitMatrices();
+	InitObjects();
 	InitCameras(); // Init cameras
     InitBuffers();
 

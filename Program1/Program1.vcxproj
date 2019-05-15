@@ -89,11 +89,15 @@
   <ItemGroup>
     <ClCompile Include="glsl.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Material.cpp" />
+    <ClCompile Include="ModelHandler.cpp" />
     <ClCompile Include="objloader.cpp" />
+    <ClCompile Include="Model.cpp" />
     <ClCompile Include="texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glsl.h" />
+    <ClInclude Include="ModelHandler.h" />
     <ClInclude Include="objloader.hpp" />
     <ClInclude Include="texture.hpp" />
   </ItemGroup>

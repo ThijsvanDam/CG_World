@@ -1,1 +1,4 @@
-﻿  Program1.vcxproj -> C:\Users\Thijs\source\repos\CG_World\Debug\Program1.exe
+﻿  main.cpp
+c:\users\thijs\source\repos\cg_world\program1\main.cpp(208): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\thijs\source\repos\cg_world\program1\main.cpp(209): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+  Program1.vcxproj -> C:\Users\Thijs\source\repos\CG_World\Debug\Program1.exe
