@@ -52,12 +52,12 @@ void ModelHandler::loadObject(string name, string objPath, string texturePath) {
 void ModelHandler::loadMaterialsLight(string name, glm::vec3 ambientColor, glm::vec3 diffuseColor, glm::vec3 specular, int power, bool applied) {
 	if (checkModel(name)) {
 		cout << "Lights for [" << name << "] loaded." << endl;
-		Model model = models[name];
-		model.material.ambientColor = ambientColor;
-		model.material.diffuseColor = diffuseColor;
-		model.material.specular = specular;
-		model.material.power = power;
-		model.material.applied = applied;
+		Model* model = &models[name];
+		model->material.ambientColor = ambientColor;
+		model->material.diffuseColor = diffuseColor;
+		model->material.specular = specular;
+		model->material.power = power;
+		model->material.applied = applied;
 	}
 }
 

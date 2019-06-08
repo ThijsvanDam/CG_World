@@ -127,7 +127,14 @@ enum class CameraMode
 
 GLuint shader_id;
 GLuint vao;
-GLuint uniform_mvp;
+
+// GLuint uniform_mvp;
+GLuint uniform_mv;
+GLuint uniform_apply_texture;
+GLuint uniform_material_ambient;
+GLuint uniform_material_diffuse;
+GLuint uniform_material_specular;
+GLuint uniform_material_power;
 
 glm::mat4 model, view, projection;
 glm::mat4 mvp;
@@ -271,30 +278,60 @@ void Render()
 	if (cameraCenterDeltaX || cameraCenterDeltaY || mouseDeltaX || mouseDeltaY)
 			calculateCameraCenter(cameraCenterDeltaX, cameraCenterDeltaY);
 
-    glClearColor(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	// Reset transformations
+	glLoadIdentity();
 
-    // Send vao
-    glBindVertexArray(vao);
-    glDrawElements(GL_LINES, sizeof(cube_elements) / sizeof(GLushort),
-        GL_UNSIGNED_SHORT, 0);
-    glBindVertexArray(0);
-
+	// Set the camera
 	view = glm::lookAt(
 		camera.eye,
 		glm::vec3(camera.eye.x + camera.center.x, camera.center.y, camera.eye.z + camera.center.z),
 		camera.up
 	);
+	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	// Send mvp
+	glUseProgram(shader_id);
 
     // Do transformation
-    model = glm::rotate(model, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
-    mvp = projection * view * model;
+    /*model = glm::rotate(model, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+    mvp = projection * view * model;*/
+	//glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
-    // Send mvp
-    glUseProgram(shader_id);
-    glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
+	for(std::map<string, Model>::iterator modelMap = model_handler.getModelsIterator();
+		modelMap != model_handler.getLastModelIterator();
+		modelMap++)
+	{
+		Model* model = &modelMap->second;
+		model->mv = view * model->model;
+
+		if(model->material.applied)
+		{
+			glUniform1i(uniform_apply_texture, 1);
+			glBindTexture(GL_TEXTURE_2D, model->textureID);
+		}
+		else
+			glUniform1i(uniform_apply_texture, 0);
+
+
+		glUniformMatrix4fv(uniform_mv, 1, GL_FALSE, glm::value_ptr(model->mv));
+		glUniform3fv(uniform_material_ambient, 1, glm::value_ptr(model->material.ambientColor));
+		glUniform3fv(uniform_material_diffuse, 1, glm::value_ptr(model->material.diffuseColor));
+		glUniform3fv(uniform_material_specular, 1, glm::value_ptr(model->material.specular));
+		glUniform1f(uniform_material_power, model->material.power);
+
+		glBindVertexArray(model->vao);
+		glDrawArrays(GL_TRIANGLES, 0, model->vertices.size());
+		glBindVertexArray(0);
+	}
+
+
+	//// Send vao
+	//glBindVertexArray(vao);
+	//glDrawElements(GL_LINES, sizeof(cube_elements) / sizeof(GLushort),
+	//	GL_UNSIGNED_SHORT, 0);
+	//glBindVertexArray(0);
     glutSwapBuffers();
 }
 
@@ -365,18 +402,18 @@ void InitShaders()
 
 void InitMatrices()
 {
-    model = glm::mat4();
-	/*
-    view = glm::lookAt(
-        glm::vec3(2.0, 2.0, 7.0),
-        glm::vec3(0.0, 0.0, 0.0),
-        glm::vec3(0.0, 1.0, 0.0));*/
+    // model = glm::mat4();
+	
+    // view = glm::lookAt(
+        // glm::vec3(2.0, 2.0, 7.0),
+        // glm::vec3(0.0, 0.0, 0.0),
+        // glm::vec3(0.0, 1.0, 0.0));
 
     projection = glm::perspective(
         glm::radians(45.0f),
         1.0f * WIDTH / HEIGHT, 0.1f,
         20.0f);
-    mvp = projection * view * model;
+    // mvp = projection * view * model;
 }
 
 
@@ -384,12 +421,6 @@ void InitMatrices()
 // void InitBuffers()
 // Allocates and fills buffers
 //------------------------------------------------------------
-GLuint uniform_mv;
-GLuint uniform_apply_texture;
-GLuint uniform_material_ambient;
-GLuint uniform_material_diffuse;
-GLuint uniform_material_specular;
-GLuint uniform_material_power;
 
 void InitBuffers()
 {
@@ -420,30 +451,31 @@ void InitBuffers()
 		modelMap != model_handler.getLastModelIterator();
 		modelMap++)
 	{
-		Model model = modelMap->second;
+		Model* model = &modelMap->second;
+
 		// vbo for vertices
 		glGenBuffers(1, &vbo_vertices);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 		glBufferData(GL_ARRAY_BUFFER, model_handler.getModelCount() * sizeof(glm::vec3),
-			&model.vertices[0], GL_STATIC_DRAW);
+			&model->vertices[0], GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		// vbo for normals
 		glGenBuffers(1, &vbo_normals);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-		glBufferData(GL_ARRAY_BUFFER, model.normals.size() * sizeof(glm::vec3),
-			&model.normals[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, model->normals.size() * sizeof(glm::vec3),
+			&model->normals[0], GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		// vbo for uvs
 		glGenBuffers(1, &vbo_uvs);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
-		glBufferData(GL_ARRAY_BUFFER, model.uvs.size() * sizeof(glm::vec2),
-			&model.uvs[0], GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, model->uvs.size() * sizeof(glm::vec2),
+			&model->uvs[0], GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		glGenVertexArrays(1, &model.vao);
-		glBindVertexArray(model.vao);
+		glGenVertexArrays(1, &model->vao);
+		glBindVertexArray(model->vao);
 
 		// Bind vertices to vao
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
