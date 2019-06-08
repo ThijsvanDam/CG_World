@@ -27,10 +27,11 @@ public:
 	void loadObject(string name, string objPath, string texturePath);
 	void loadMaterialsLight(string name, glm::vec3 ambientColor, glm::vec3 diffuseColor, glm::vec3 specular, int power, bool applied); 
 	void printAll();
+	bool checkModelComplete(string name);
 
 private:
 	bool checkModel(string name);
-	std::map<std::string, Model> models;
+	std::map<string, Model> models;
 };
 
 struct ModelNotFoundException : public exception {

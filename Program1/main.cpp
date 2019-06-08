@@ -104,7 +104,6 @@ struct LightSource {
 	glm::vec3 position;
 };
 
-
 struct Camera
 {
 	glm::vec3 eye;
@@ -116,10 +115,6 @@ enum class CameraMode
 {
 	View = 0, Walk = 1
 };
-
-
-
-
 
 //--------------------------------------------------------------------------------
 // Variables
@@ -451,49 +446,55 @@ void InitBuffers()
 		modelMap != model_handler.getLastModelIterator();
 		modelMap++)
 	{
-		Model* model = &modelMap->second;
+		Model model = modelMap->second;
 
-		// vbo for vertices
-		glGenBuffers(1, &vbo_vertices);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-		glBufferData(GL_ARRAY_BUFFER, model_handler.getModelCount() * sizeof(glm::vec3),
-			&model->vertices[0], GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+		if(model_handler.checkModelComplete(modelMap->first))
+		{
+			// vbo for vertices
+			glGenBuffers(1, &vbo_vertices);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+			glBufferData(GL_ARRAY_BUFFER, model_handler.getModelCount() * sizeof(glm::vec3),
+				&model.vertices[0], GL_STATIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+			// vbo for normals
+			glGenBuffers(1, &vbo_normals);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+			glBufferData(GL_ARRAY_BUFFER, model.normals.size() * sizeof(glm::vec3),
+				&model.normals[0], GL_STATIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+			// vbo for uvs
+			glGenBuffers(1, &vbo_uvs);
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
+			glBufferData(GL_ARRAY_BUFFER, model.uvs.size() * sizeof(glm::vec2),
+				&model.uvs[0], GL_STATIC_DRAW);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+			glGenVertexArrays(1, &model.vao);
+			glBindVertexArray(model.vao);
+		
+			// Bind vertices to vao
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+			glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(position_id);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+			glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(normal_id);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+			glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
+			glVertexAttribPointer(uv_id, 2, GL_FLOAT, GL_FALSE, 0, 0);
+			glEnableVertexAttribArray(uv_id);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+			glBindVertexArray(0);
+		}
 
-		// vbo for normals
-		glGenBuffers(1, &vbo_normals);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-		glBufferData(GL_ARRAY_BUFFER, model->normals.size() * sizeof(glm::vec3),
-			&model->normals[0], GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		// vbo for uvs
-		glGenBuffers(1, &vbo_uvs);
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
-		glBufferData(GL_ARRAY_BUFFER, model->uvs.size() * sizeof(glm::vec2),
-			&model->uvs[0], GL_STATIC_DRAW);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		glGenVertexArrays(1, &model->vao);
-		glBindVertexArray(model->vao);
-
-		// Bind vertices to vao
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-		glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(position_id);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-		glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(normal_id);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
-		glVertexAttribPointer(uv_id, 2, GL_FLOAT, GL_FALSE, 0, 0);
-		glEnableVertexAttribArray(uv_id);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-		glBindVertexArray(0);
 	}
 	////**************************** old InitBuffer
 
@@ -574,6 +575,10 @@ void InitObjects()
 		128,
 		true
 	);
+
+	model_handler.initModel("Pinda");
+	//
+	// cout << model_handler.getModelCount() << endl;
 }
 
 int main(int argc, char ** argv)
@@ -584,10 +589,10 @@ int main(int argc, char ** argv)
 	InitObjects();
 	InitCameras(); // Init cameras
     InitBuffers();
-
+/*
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
-
+*/
     HWND hWnd = GetConsoleWindow();
     ShowWindow(hWnd, SW_SHOW);
 

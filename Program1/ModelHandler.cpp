@@ -1,6 +1,7 @@
 #include "ModelHandler.h"
 
 #include "Model.cpp"
+#include <iostream>
 
 using namespace std;
 
@@ -18,20 +19,19 @@ Model* ModelHandler::getModel(string name)
 	return &this->models[name];
 }
 
-
 int ModelHandler::getModelCount()
 {
-	return models.size();
+	return this->models.size();
 }
 
 std::map<string, Model>::iterator ModelHandler::getModelsIterator()
 {
-	return models.begin();
+	return this->models.begin();
 }
 
 std::map<string, Model>::iterator ModelHandler::getLastModelIterator()
 {
-	return models.end();
+	return this->models.end();
 }
 
 void ModelHandler::initModel(string name)
@@ -74,3 +74,15 @@ bool ModelHandler::checkModel(string name) {
 	throw new ModelNotFoundException();
 }
 
+bool ModelHandler::checkModelComplete(string name)
+{
+	bool valid = true;
+	if(checkModel(name))
+	{
+		Model* model = &models[name];
+		
+		cout << model->vertices.at(1).x << endl;
+
+	}
+	return valid;
+}
