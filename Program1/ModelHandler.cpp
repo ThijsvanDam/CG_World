@@ -79,9 +79,10 @@ bool ModelHandler::checkModelComplete(string name)
 	bool valid = true;
 	if(checkModel(name))
 	{
-		Model* model = &models[name];
+		Model model = models[name];
+
+		if (model.vertices == 0);
 		
-		cout << model->vertices.at(1).x << endl;
 
 	}
 	return valid;
