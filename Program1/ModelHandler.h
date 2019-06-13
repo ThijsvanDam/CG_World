@@ -1,14 +1,11 @@
 #pragma once
-
-#include <iostream>
 #include <vector>
 #include <map>
-#include <string.h> 
-#include <vector>
-#include <glm/glm.hpp>
+#include "Model.cpp"
 #include "objloader.hpp"
 #include "texture.hpp"
-#include "Model.cpp"
+#include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -16,7 +13,6 @@ class ModelHandler
 {
 public:
 	ModelHandler() = default;
-
 	void addModel(std::string name, std::vector<glm::vec3> vertices, std::vector<glm::vec3> normals, std::vector<glm::vec2> uvs);
 	void addModel(std::string name, Model model);
 	Model* getModel(string name);
@@ -31,6 +27,7 @@ public:
 
 private:
 	bool checkModel(string name);
+	// TODO: Might want to change the models map to be <string, Model*>
 	std::map<string, Model> models;
 };
 

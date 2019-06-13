@@ -1,8 +1,5 @@
 #include "ModelHandler.h"
 
-#include "Model.cpp"
-#include <iostream>
-
 using namespace std;
 
 
@@ -16,6 +13,7 @@ void ModelHandler::addModel(string name, Model model) {
 
 Model* ModelHandler::getModel(string name)
 {
+	// TODO: I don't think this should be a pointer/reference
 	return &this->models[name];
 }
 
@@ -76,14 +74,35 @@ bool ModelHandler::checkModel(string name) {
 
 bool ModelHandler::checkModelComplete(string name)
 {
-	bool valid = true;
 	if(checkModel(name))
 	{
 		Model model = models[name];
+		Model test = empty_model;
+		cout << "pinda" << endl;
 
-		if (model.vertices == 0);
-		
 
+		if (model.vertices == empty_model.vertices || 
+			model.normals == empty_model.normals || 
+			model.uvs == empty_model.uvs ||
+			(
+				model.material.ambientColor == empty_model.material.ambientColor &&
+				model.material.diffuseColor == empty_model.material.diffuseColor &&
+				model.material.specular == empty_model.material.specular &&
+				model.material.power == empty_model.material.power &&
+				model.material.applied == empty_model.material.applied
+			) ||
+			// model.model == empty_model.model ||
+			// model.mv == empty_model.mv ||
+			model.vao == empty_model.vao ||
+			model.textureID == empty_model.textureID)
+		{
+			cout << name << " model is incomplete." << endl;
+			return false;
+		}
+	}else
+	{
+		cout << name << " model doesn't exist." << endl;
 	}
-	return valid;
+	cout << name << " model is complete." << endl;
+	return true;
 }
