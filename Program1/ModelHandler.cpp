@@ -81,7 +81,10 @@ bool ModelHandler::checkModelComplete(string name)
 	{
 		Model model = models[name];
 
-		if (model.vertices == 0);
+		if (model.vertices == 0)
+		{
+			
+		}
 		
 
 	}
