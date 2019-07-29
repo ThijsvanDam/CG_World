@@ -97,7 +97,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glsl.h" />
-    <ClInclude Include="ModelHandler.h" />
     <ClInclude Include="objloader.hpp" />
     <ClInclude Include="texture.hpp" />
   </ItemGroup>

@@ -1,4 +1,5 @@
 ﻿  ModelHandler.cpp
+<<<<<<< HEAD
 c:\users\thijs-pc\source\repos\cg_world\program1\modelhandler.cpp(59): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
 c:\users\thijs-pc\source\repos\cg_world\program1\modelhandler.cpp(84): error C2678: binary '==': no operator found which takes a left-hand operand of type 'std::vector<glm::vec3,std::allocator<_Ty>>' (or there is no acceptable conversion)
           with
@@ -22,3 +23,7 @@ c:\users\thijs-pc\source\repos\cg_world\program1\modelhandler.cpp(84): error C26
 c:\users\thijs-pc\source\repos\cg_world\program1\main.cpp(210): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
 c:\users\thijs-pc\source\repos\cg_world\program1\main.cpp(211): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
   Generating Code...
+=======
+c:\users\thijs\source\repos\cg_world\program1\modelhandler.cpp(57): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+  Program1.vcxproj -> C:\Users\Thijs\source\repos\CG_World\Debug\Program1.exe
+>>>>>>> 4e90ededf1526994a5711e9cb92c8ab73e3f0e1f

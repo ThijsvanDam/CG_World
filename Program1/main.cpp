@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <vector>
 #include <map>
@@ -298,26 +299,27 @@ void Render()
 		modelMap != model_handler.getLastModelIterator();
 		modelMap++)
 	{
-		Model* model = &modelMap->second;
-		model->mv = view * model->model;
+		Model model = modelMap->second;
 
-		if(model->material.applied)
+		model.mv = view * model.model;
+
+		if(model.material.applied)
 		{
 			glUniform1i(uniform_apply_texture, 1);
-			glBindTexture(GL_TEXTURE_2D, model->textureID);
+			glBindTexture(GL_TEXTURE_2D, model.textureID);
 		}
 		else
 			glUniform1i(uniform_apply_texture, 0);
 
 
-		glUniformMatrix4fv(uniform_mv, 1, GL_FALSE, glm::value_ptr(model->mv));
-		glUniform3fv(uniform_material_ambient, 1, glm::value_ptr(model->material.ambientColor));
-		glUniform3fv(uniform_material_diffuse, 1, glm::value_ptr(model->material.diffuseColor));
-		glUniform3fv(uniform_material_specular, 1, glm::value_ptr(model->material.specular));
-		glUniform1f(uniform_material_power, model->material.power);
+		glUniformMatrix4fv(uniform_mv, 1, GL_FALSE, glm::value_ptr(model.mv));
+		glUniform3fv(uniform_material_ambient, 1, glm::value_ptr(model.material.ambientColor));
+		glUniform3fv(uniform_material_diffuse, 1, glm::value_ptr(model.material.diffuseColor));
+		glUniform3fv(uniform_material_specular, 1, glm::value_ptr(model.material.specular));
+		glUniform1f(uniform_material_power, model.material.power);
 
-		glBindVertexArray(model->vao);
-		glDrawArrays(GL_TRIANGLES, 0, model->vertices.size());
+		glBindVertexArray(model.vao);
+		glDrawArrays(GL_TRIANGLES, 0, model.vertices.size());
 		glBindVertexArray(0);
 	}
 
@@ -447,10 +449,12 @@ void InitBuffers()
 		modelMap++)
 	{
 		Model model = modelMap->second;
-
 		
 		if(model_handler.checkModelComplete(modelMap->first))
 		{
+			
+			cout << "Model " << modelMap->first << " is being rendered!" << endl;
+
 			// vbo for vertices
 			glGenBuffers(1, &vbo_vertices);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
@@ -593,6 +597,7 @@ int main(int argc, char ** argv)
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 */
+	cout << " HASDFLKASDF " << endl;
     HWND hWnd = GetConsoleWindow();
     ShowWindow(hWnd, SW_SHOW);
 
