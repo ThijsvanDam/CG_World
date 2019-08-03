@@ -103,6 +103,5 @@ bool ModelHandler::checkModelComplete(string name)
 	{
 		cout << name << " model doesn't exist." << endl;
 	}
-	cout << name << " model is complete." << endl;
 	return true;
 }
