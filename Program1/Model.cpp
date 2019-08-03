@@ -19,7 +19,7 @@ struct Model {
 };
 
 static float f_mx = std::numeric_limits<float>::max();
-
+ 
 static Model empty_model = {
 	vector<glm::vec3>{ glm::vec3(f_mx, f_mx, f_mx) },
 	vector<glm::vec3>{ glm::vec3(f_mx, f_mx, f_mx) },
