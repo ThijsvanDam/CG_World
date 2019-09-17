@@ -20,7 +20,6 @@
 
 using namespace std;
 
-
 //--------------------------------------------------------------------------------
 // Consts
 //--------------------------------------------------------------------------------
@@ -156,7 +155,6 @@ void pressKeyHandler(unsigned char key, int a, int b)
 		glutExit();
 
 	case 'c':
-		cout << "Switch camera's " << endl;
 		switchCameraMode();
 		break;
 	}
@@ -240,7 +238,7 @@ void calculateCameraCenter(float cameraCenterDeltaX, float cameraCenterDeltaY) {
 void InitCameras() {
 
 	// View camera definition, this one is static!
-	glm::vec3  viewCameraPosition = { 2.0f, 2.0f, 8.0f };
+	glm::vec3  viewCameraPosition = { 20.0f, 20.0f, 80.0f };
 	glm::vec3 viewCameraAngle = { 0.0f, -0.0f, -0.0f };
 	cameras[int(CameraMode::View)] = { viewCameraPosition, viewCameraAngle };
 
@@ -255,6 +253,8 @@ void InitCameras() {
 void switchCameraMode()
 {
 	cameraMode = bool(cameraMode) ? CameraMode::View : CameraMode::Walk;
+	const string cCstring = bool(cameraMode) ? "view" : "walk";
+	cout << "Switch camera to [" << cCstring << "] mode." << endl;
 	camera = cameras[int(cameraMode)];
 } 
 
@@ -266,6 +266,8 @@ void switchCameraMode()
 
 float z = 15.0;
 float offset = 0.5;
+int modelPrint = 0;
+
 void Render()
 {
 	if (cameraEyeDeltaX || cameraEyeDeltaZ)
@@ -283,7 +285,7 @@ void Render()
 		glm::vec3(camera.eye.x + camera.center.x, camera.center.y, camera.eye.z + camera.center.z),
 		camera.up
 	);
-	glClearColor(0.0, 0.0, 0.0, 1.0);
+	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Send mvp
@@ -295,33 +297,62 @@ void Render()
 	//glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
 
-	for(std::map<string, Model>::iterator modelMap = model_handler.getModelsIterator();
-		modelMap != model_handler.getLastModelIterator();
-		modelMap++)
+	Model* oc = model_handler.getModel("Old_cottage");
+
+	if(oc->material.applied)
 	{
-		Model model = modelMap->second;
-
-		model.mv = view * model.model;
-
-		if(model.material.applied)
-		{
-			glUniform1i(uniform_apply_texture, 1);
-			glBindTexture(GL_TEXTURE_2D, model.textureID);
-		}
-		else
-			glUniform1i(uniform_apply_texture, 0);
-
-
-		glUniformMatrix4fv(uniform_mv, 1, GL_FALSE, glm::value_ptr(model.mv));
-		glUniform3fv(uniform_material_ambient, 1, glm::value_ptr(model.material.ambientColor));
-		glUniform3fv(uniform_material_diffuse, 1, glm::value_ptr(model.material.diffuseColor));
-		glUniform3fv(uniform_material_specular, 1, glm::value_ptr(model.material.specular));
-		glUniform1f(uniform_material_power, model.material.power);
-
-		glBindVertexArray(model.vao);
-		glDrawArrays(GL_TRIANGLES, 0, model.vertices.size());
-		glBindVertexArray(0);
+		glUniform1i(uniform_apply_texture, 1);
+		glBindTexture(GL_TEXTURE_2D, oc->textureID);
 	}
+	else
+		glUniform1i(uniform_apply_texture, 0);
+
+	glUniformMatrix4fv(uniform_mv, 1, GL_FALSE, glm::value_ptr(oc->mv));
+	glUniform3fv(uniform_material_ambient, 1, glm::value_ptr(oc->material.ambientColor));
+	glUniform3fv(uniform_material_diffuse, 1, glm::value_ptr(oc->material.diffuseColor));
+	glUniform3fv(uniform_material_specular, 1, glm::value_ptr(oc->material.specular));
+	glUniform1f(uniform_material_power, oc->material.power);
+
+	glBindVertexArray(oc->vao);
+	glDrawArrays(GL_TRIANGLES, 0, oc->vertices.size());
+	glBindVertexArray(0);
+
+	glutSwapBuffers();
+
+	//for(std::map<string, Model>::iterator modelMap = model_handler.getModelsIterator();
+	//	modelMap != model_handler.getLastModelIterator();
+	//	modelMap++)
+	//{
+	//	Model model = modelMap->second;
+
+	//	if(modelPrint < model_handler.getModelCount())
+	//	{
+	//		model_handler.printModel(model, modelMap->first);
+	//		modelPrint++;
+	//	}
+	//	
+	//	//model.mv = view * model.model;
+
+	//	if(model.material.applied)
+	//	{
+	//		glUniform1i(uniform_apply_texture, 1);
+	//		glBindTexture(GL_TEXTURE_2D, model.textureID);
+	//	}
+	//	else
+	//		glUniform1i(uniform_apply_texture, 0);
+
+
+	//	glUniformMatrix4fv(uniform_mv, 1, GL_FALSE, glm::value_ptr(model.mv));
+	//	glUniform3fv(uniform_material_ambient, 1, glm::value_ptr(model.material.ambientColor));
+	//	glUniform3fv(uniform_material_diffuse, 1, glm::value_ptr(model.material.diffuseColor));
+	//	glUniform3fv(uniform_material_specular, 1, glm::value_ptr(model.material.specular));
+	//	glUniform1f(uniform_material_power, model.material.power);
+
+	//	glBindVertexArray(model.vao);
+	//	glDrawArrays(GL_TRIANGLES, 0, model.vertices.size());
+	//	glBindVertexArray(0);
+	//}
+	//glutSwapBuffers();
 
 
 	//// Send vao
@@ -329,7 +360,6 @@ void Render()
 	//glDrawElements(GL_LINES, sizeof(cube_elements) / sizeof(GLushort),
 	//	GL_UNSIGNED_SHORT, 0);
 	//glBindVertexArray(0);
-    glutSwapBuffers();
 }
 
 
@@ -405,12 +435,25 @@ void InitMatrices()
         // glm::vec3(2.0, 2.0, 7.0),
         // glm::vec3(0.0, 0.0, 0.0),
         // glm::vec3(0.0, 1.0, 0.0));
+	string og = "Ondergrond";
+	Model* ogModel = model_handler.getModel(og);
+	ogModel->model = glm::translate(glm::mat4(), glm::vec3(40, -2.5, -15));
+	ogModel->model = glm::scale(ogModel->model, glm::vec3(144, 1, 48));
+
+	// Set the camera
+	view = glm::lookAt(
+		camera.eye,
+		glm::vec3(camera.eye.x + camera.center.x, 1.75f + camera.center.y, camera.eye.z + camera.center.z),
+		camera.up
+	);
 
     projection = glm::perspective(
         glm::radians(45.0f),
         1.0f * WIDTH / HEIGHT, 0.1f,
         20.0f);
     // mvp = projection * view * model;
+
+	ogModel->mv = view * ogModel->model;
 }
 
 
@@ -449,10 +492,10 @@ void InitBuffers()
 		modelMap++)
 	{
 		Model model = modelMap->second;
+		model_handler.printModel(modelMap->first);
 		
 		if(model_handler.checkModelComplete(modelMap->first))
 		{
-			
 			cout << "Model " << modelMap->first << " is being rendered!" << endl;
 
 			// vbo for vertices
@@ -475,7 +518,7 @@ void InitBuffers()
 			glBufferData(GL_ARRAY_BUFFER, model.uvs.size() * sizeof(glm::vec2),
 				&model.uvs[0], GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
+			
 			glGenVertexArrays(1, &model.vao);
 			glBindVertexArray(model.vao);
 		
@@ -566,22 +609,34 @@ void InitObjects()
 
 	string oc = "Old_cottage";
 	model_handler.initModel(oc);
-	/*Model* m = model_handler.getModel(oc);
-	string a = "objects/sphere.obj";
-	bool res = loadOBJ(a.c_str(), m->vertices, m->uvs, m->normals);*/
 
 	model_handler.loadObject(oc, "objects/teapot.obj", "textures/Yellobrk.bmp");
 	model_handler.loadMaterialsLight(
 		oc,
-		glm::vec3(0.6, 0.6, 0.6),
-		glm::vec3(0.6, 0.6, 0.6),
-		glm::vec3(0.5),
+		glm::vec3(0.3, 0.3, 0.3),
+		glm::vec3(0.5, 0.5, 0.0),
+		glm::vec3(1.0),
+		256,
+		false
+	);
+
+	string og = "Ondergrond";
+	model_handler.initModel(og);
+	model_handler.loadObject(og, "objects/box.obj", "textures/XOndergrond.bmp");
+	model_handler.loadMaterialsLight(
+		og,
+		glm::vec3(0.3, 0.3, 0.0),
+		glm::vec3(0.5, 0.5, 0.0),
+		glm::vec3(1.0),
 		128,
 		true
 	);
 
-	model_handler.initModel("Pinda");
-	//
+	//Model* m = model_handler.getModel(oc);
+	//string a = "objects/sphere.obj";
+	//bool res = loadOBJ(a.c_str(), m->vertices, m->uvs, m->normals);
+
+	//model_handler.initModel("Pinda");
 	// cout << model_handler.getModelCount() << endl;
 }
 
@@ -593,11 +648,11 @@ int main(int argc, char ** argv)
 	InitObjects();
 	InitCameras(); // Init cameras
     InitBuffers();
+
 /*
     glEnable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
 */
-	cout << " HASDFLKASDF " << endl;
     HWND hWnd = GetConsoleWindow();
     ShowWindow(hWnd, SW_SHOW);
 

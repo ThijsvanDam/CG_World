@@ -1,4 +1,5 @@
 #include "ModelHandler.h"
+#include <glm/gtc/type_ptr.hpp>
 
 using namespace std;
 
@@ -35,11 +36,11 @@ std::map<string, Model>::iterator ModelHandler::getLastModelIterator()
 void ModelHandler::initModel(string name)
 {
 	cout << "Object [" << name << "] initialized." << endl;
-	models[name] = {};
+	models[name] = empty_model;
 }
 
 void ModelHandler::loadObject(string name, string objPath, string texturePath) {
-	if (checkModel(name)) {
+	if (checkModelExists(name)) {
 		cout << "Object [" << name << "] loaded." << endl;
 		Model* model = &models[name];
 		bool res = loadOBJ(objPath.c_str(), model->vertices, model->uvs, model->normals);
@@ -48,7 +49,7 @@ void ModelHandler::loadObject(string name, string objPath, string texturePath) {
 }
 
 void ModelHandler::loadMaterialsLight(string name, glm::vec3 ambientColor, glm::vec3 diffuseColor, glm::vec3 specular, int power, bool applied) {
-	if (checkModel(name)) {
+	if (checkModelExists(name)) {
 		cout << "Lights for [" << name << "] loaded." << endl;
 		Model* model = &models[name];
 		model->material.ambientColor = ambientColor;
@@ -66,35 +67,90 @@ void ModelHandler::printAll() {
 	cout << endl;
 }
 
-bool ModelHandler::checkModel(string name) {
+bool ModelHandler::checkModelExists(string name) {
 	if (models.find(name) != models.end())
 		return true;
 	throw new ModelNotFoundException();
 }
 
+void ModelHandler::printModel(Model modelToPrint, string name)
+{
+	cout << endl << "/---- Model: " << name << " ----\\" << endl;
+	cout << "vertices: " << modelToPrint.vertices.size() << endl;
+	cout << "normals: " << modelToPrint.normals.size() << endl;
+	cout << "uvs: " << modelToPrint.uvs.size() << endl;
+	cout << "material: " << endl;
+	cout << "\t ambientColor: (" << modelToPrint.material.ambientColor.x << ", " << modelToPrint.material.ambientColor.y << ", " << modelToPrint.material.ambientColor.z << ")" << endl;
+	cout << "\t diffuseColor: (" << modelToPrint.material.diffuseColor.x << ", " << modelToPrint.material.diffuseColor.y << ", " << modelToPrint.material.diffuseColor.z << ")" << endl;
+	cout << "\t specular: (" << modelToPrint.material.specular.x << ", " << modelToPrint.material.specular.y << ", " << modelToPrint.material.specular.z << ")" << endl;
+	cout << "\t power: " << modelToPrint.material.power << endl;
+	cout << "\t applied: " << modelToPrint.material.applied << endl;
+	cout << "model: " << endl;
+	const float *pSource = (const float*)glm::value_ptr(modelToPrint.model);
+	for (int i = 0; i < 16; i++)
+	{
+		if (i % 4 == 0)
+		{
+			cout << "\t";
+		}
+		cout << pSource[i];
+		if (i % 4 == 3)
+		{
+			cout << endl;
+		}
+		else
+		{
+			cout << ", ";
+		}
+
+	}
+	cout << "mv: " << endl;
+	pSource = (const float*)glm::value_ptr(modelToPrint.mv);
+	for (int i = 0; i < 16; i++)
+	{
+		if (i % 4 == 0) { cout << "\t"; }
+		cout << pSource[i];
+		if (i % 4 == 3)
+		{
+			cout << endl;
+		}
+		else
+		{
+			cout << ", ";
+		}
+
+	}
+	cout << "vao: " << modelToPrint.vao << endl;
+	cout << "textureID: " << modelToPrint.textureID << endl;
+	cout << "\\-----------------------/" << endl << endl;
+}
+
+void ModelHandler::printModel(string name)
+{
+	Model model = models.find(name)->second;
+	printModel(model, name);
+}
+
 bool ModelHandler::checkModelComplete(string name)
 {
-	if(checkModel(name))
+	if(checkModelExists(name))
 	{
 		Model model = models[name];
 		Model test = empty_model;
-		cout << "pinda" << endl;
-
 
 		if (model.vertices == empty_model.vertices || 
-			model.normals == empty_model.normals || 
-			model.uvs == empty_model.uvs ||
+			model.normals  == empty_model.normals  || 
+			model.uvs      == empty_model.uvs      ||
 			(
 				model.material.ambientColor == empty_model.material.ambientColor &&
 				model.material.diffuseColor == empty_model.material.diffuseColor &&
-				model.material.specular == empty_model.material.specular &&
-				model.material.power == empty_model.material.power &&
-				model.material.applied == empty_model.material.applied
-			) ||
-			// model.model == empty_model.model ||
-			// model.mv == empty_model.mv ||
-			model.vao == empty_model.vao ||
-			model.textureID == empty_model.textureID)
+				model.material.specular     == empty_model.material.specular &&
+				model.material.power        == empty_model.material.power &&
+				model.material.applied      == empty_model.material.applied
+			) || model.textureID == empty_model.textureID)
+			// model.model == empty_model.model  ||
+			// model.mv    == empty_model.mv     ||  These are not included because they will be changed by OpenGL while rendering.
+			// model.vao   == empty_model.vao    ||
 		{
 			cout << name << " model is incomplete." << endl;
 			return false;
@@ -103,5 +159,6 @@ bool ModelHandler::checkModelComplete(string name)
 	{
 		cout << name << " model doesn't exist." << endl;
 	}
+	cout << "Model " << name << " is complete" << endl;
 	return true;
 }

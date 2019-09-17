@@ -53,6 +53,12 @@
     <ClInclude Include="texture.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="ModelHandler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="fragmentshader.fsh">
@@ -70,6 +76,9 @@
       <Filter>Resource Files\textures</Filter>
     </Image>
     <Image Include="textures\uvtemplate.bmp">
+      <Filter>Resource Files\textures</Filter>
+    </Image>
+    <Image Include="..\..\..\..\OneDrive\Desktop\Bestanden\Final Assignment Erik van Lune ICTGPb s1095043\Program1\Textures\XOndergrond.png">
       <Filter>Resource Files\textures</Filter>
     </Image>
   </ItemGroup>

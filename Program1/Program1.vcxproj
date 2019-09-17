@@ -13,20 +13,21 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{169B42A3-D044-471A-8FE0-40FED6E45CCA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>Program1</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+    <RootNamespace>ProjectProgram</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>ProjectProgram</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
@@ -97,6 +98,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glsl.h" />
+    <ClInclude Include="Model.h" />
+    <ClInclude Include="ModelHandler.h" />
     <ClInclude Include="objloader.hpp" />
     <ClInclude Include="texture.hpp" />
   </ItemGroup>
@@ -113,6 +116,7 @@
     </Text>
   </ItemGroup>
   <ItemGroup>
+    <Image Include="..\..\..\..\OneDrive\Desktop\Bestanden\Final Assignment Erik van Lune ICTGPb s1095043\Program1\Textures\XOndergrond.png" />
     <Image Include="textures\uvmap.DDS" />
     <Image Include="textures\uvtemplate.bmp" />
     <Image Include="textures\Yellobrk.bmp" />

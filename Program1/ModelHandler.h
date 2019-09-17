@@ -9,6 +9,7 @@
 
 using namespace std;
 
+
 class ModelHandler
 {
 public:
@@ -22,11 +23,13 @@ public:
 	void initModel(string name);
 	void loadObject(string name, string objPath, string texturePath);
 	void loadMaterialsLight(string name, glm::vec3 ambientColor, glm::vec3 diffuseColor, glm::vec3 specular, int power, bool applied); 
+	void printModel(string name); 
+	void printModel(Model model, string name); 
 	void printAll();
 	bool checkModelComplete(string name);
 
 private:
-	bool checkModel(string name);
+	bool checkModelExists(string name);
 	// TODO: Might want to change the models map to be <string, Model*>
 	std::map<string, Model> models;
 };
