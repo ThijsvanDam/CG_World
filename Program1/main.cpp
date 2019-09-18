@@ -242,8 +242,8 @@ void InitCameras() {
 	cameras[int(CameraMode::View)] = { viewCameraPosition, viewCameraAngle };
 
 	// Walk camera definition, this one is dynamic!
-	glm::vec3 walkCameraPosition = { 0.0f, 0.0f, 0.0f };
-	glm::vec3 walkCameraAngle = { 0.0f, 0.0f, 1.75f };
+	glm::vec3 walkCameraPosition = { 0.0f, 2.0f, 6.0f };
+	glm::vec3 walkCameraAngle = { 1.5f, 0.5f, 0.0f };
 	cameras[int(CameraMode::Walk)] = { walkCameraPosition, walkCameraAngle };
 
 	camera = cameras[int(cameraMode)];
@@ -262,15 +262,14 @@ void switchCameraMode()
 //--------------------------------------------------------------------------------
 // Rendering
 //--------------------------------------------------------------------------------
-
 float z = 15.0;
 float offset = 0.5;
 int modelPrint = 0;
 
 void Render()
 {
-	if (cameraEyeDeltaX || cameraEyeDeltaZ)
-		calculateCameraEye(cameraEyeDeltaX, cameraEyeDeltaZ);
+	if (cameraEyeDeltaX != 0.0f || cameraEyeDeltaZ != 0.0f)
+		calculateCameraEye(cameraEyeDeltaX, cameraEyeDeltaZ); // #TODO: Movementspeed?
 
 	if (cameraCenterDeltaX || cameraCenterDeltaY || mouseDeltaX || mouseDeltaY)
 			calculateCameraCenter(cameraCenterDeltaX, cameraCenterDeltaY);
@@ -294,41 +293,42 @@ void Render()
     /*model = glm::rotate(model, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
     mvp = projection * view * model;*/
 	//glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
-
-	cout << models.size() << endl;
 	for (int i = 0; i < models.size(); ++i)
 	{
-		Model model = models[i];
-		
-		//model.mv = view * model.model;
 
-		if(model.material.applied)
+		// model.model = glm::rotate(model.model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		 // model.model = glm::rotate(model.model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	
+
+
+		
+		//models[i].mv = view * models[i].model;
+
+		if(models[i].material.applied)
 		{
 			glUniform1i(uniform_apply_texture, 1);
-			glBindTexture(GL_TEXTURE_2D, model.textureID);
+			glBindTexture(GL_TEXTURE_2D, models[i].textureID);
 		}
 		else
 			glUniform1i(uniform_apply_texture, 0);
 
+		glUniformMatrix4fv(uniform_mv, 1, GL_FALSE, glm::value_ptr(models[i].mv));
+		glUniform3fv(uniform_material_ambient, 1, glm::value_ptr(models[i].material.ambientColor));
+		glUniform3fv(uniform_material_diffuse, 1, glm::value_ptr(models[i].material.diffuseColor));
+		glUniform3fv(uniform_material_specular, 1, glm::value_ptr(models[i].material.specular));
+		glUniform1f(uniform_material_power, models[i].material.power);
 
-		glUniformMatrix4fv(uniform_mv, 1, GL_FALSE, glm::value_ptr(model.mv));
-		glUniform3fv(uniform_material_ambient, 1, glm::value_ptr(model.material.ambientColor));
-		glUniform3fv(uniform_material_diffuse, 1, glm::value_ptr(model.material.diffuseColor));
-		glUniform3fv(uniform_material_specular, 1, glm::value_ptr(model.material.specular));
-		glUniform1f(uniform_material_power, model.material.power);
-
-		glBindVertexArray(model.vao);
-		glDrawArrays(GL_TRIANGLES, 0, model.vertices.size());
+		glBindVertexArray(models[i].vao);
+		glDrawArrays(GL_TRIANGLES, 0, models[i].vertices.size());
 		glBindVertexArray(0);
 	}
 	glutSwapBuffers();
-
-
-	// Send vao
-	glBindVertexArray(vao);
-	glDrawElements(GL_LINES, sizeof(cube_elements) / sizeof(GLushort),
-		GL_UNSIGNED_SHORT, 0);
-	glBindVertexArray(0);
+	//
+	// // Send vao
+	// glBindVertexArray(vao);
+	// glDrawElements(GL_LINES, sizeof(cube_elements) / sizeof(GLushort),
+	// 	GL_UNSIGNED_SHORT, 0);
+	// glBindVertexArray(0);
 }
 
 
@@ -398,24 +398,34 @@ void InitShaders()
 
 void InitMatrices()
 {
-    
+    /*
 	models[1].model = glm::translate(glm::mat4(), glm::vec3(40, -2.5, -15));
-	models[1].model = glm::scale(models[1].model, glm::vec3(144, 1, 48));
+	models[1].model = glm::scale(models[1].model, glm::vec3(144, 1, 48));*/
+
+
+	//ignore = glm::translate(ignore, glm::vec3(1000.0f, 0.0f, 0.0f));
 
 	// Set the camera
+
+
 	view = glm::lookAt(
+		glm::vec3(0.0, 2.0, 6.0),
+		glm::vec3(1.5, 0.5, 0.0),
+		glm::vec3(0.0, 1.0, 0.0));
+	
+	/*view = glm::lookAt(
 		camera.eye,
 		glm::vec3(camera.eye.x + camera.center.x, 1.75f + camera.center.y, camera.eye.z + camera.center.z),
 		camera.up
-	);
+	);*/
 
     projection = glm::perspective(
         glm::radians(45.0f),
         1.0f * WIDTH / HEIGHT, 0.1f,
-        20.0f);
+        400.0f);
     // mvp = projection * view * model;
 
-	for (int i = 0; i < models.size(); ++i)
+	for (int i = 0; i < models.size(); i++)
 	{
 		models[i].mv = view * models[i].model;
 	}
@@ -459,10 +469,10 @@ void InitBuffers()
 	GLuint normal_id = glGetAttribLocation(shader_id, "normal");
 	GLuint uv_id = glGetAttribLocation(shader_id, "uv");
 
-	// Attrach the program from shader_id so we can set uniform vars
+	// Attach to program (needed to send uniform vars)
 	glUseProgram(shader_id);
 
-	// Create and set UVs (uniform vars)
+	// Make uniform vars
 	uniform_mv = glGetUniformLocation(shader_id, "mv");
 	GLuint uniform_proj = glGetUniformLocation(shader_id, "projection");
 	GLuint uniform_light_pos = glGetUniformLocation(shader_id, "lightPos");
@@ -476,59 +486,50 @@ void InitBuffers()
 	glUniformMatrix4fv(uniform_proj, 1, GL_FALSE, glm::value_ptr(projection));
 	glUniform3fv(uniform_light_pos, 1, glm::value_ptr(light.position));
 
-
-	for (int i = 0; i < models.size(); ++i)
+	for (unsigned int i = 0; i < models.size(); i++)
 	{
-		Model model = models[i];
-		
-		if(checkModelComplete(model, i))
-		{
-			cout << "Model " << i << " is being rendered!" << endl;
+		// vbo for vertices
+		glGenBuffers(1, &vbo_vertices);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+		glBufferData(GL_ARRAY_BUFFER, models[i].vertices.size() * sizeof(glm::vec3),
+			&models[i].vertices[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-			// vbo for vertices
-			glGenBuffers(1, &vbo_vertices);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-			glBufferData(GL_ARRAY_BUFFER, model.vertices.size() * sizeof(glm::vec3),
-				&model.vertices[0], GL_STATIC_DRAW);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
-			// vbo for normals
-			glGenBuffers(1, &vbo_normals);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-			glBufferData(GL_ARRAY_BUFFER, model.normals.size() * sizeof(glm::vec3),
-				&model.normals[0], GL_STATIC_DRAW);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
-			// vbo for uvs
-			glGenBuffers(1, &vbo_uvs);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
-			glBufferData(GL_ARRAY_BUFFER, model.uvs.size() * sizeof(glm::vec2),
-				&model.uvs[0], GL_STATIC_DRAW);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			
-			glGenVertexArrays(1, &model.vao);
-			glBindVertexArray(model.vao);
-		
-			// Bind vertices to vao
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-			glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(position_id);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
-			glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(normal_id);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
-			glVertexAttribPointer(uv_id, 2, GL_FLOAT, GL_FALSE, 0, 0);
-			glEnableVertexAttribArray(uv_id);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
-			glBindVertexArray(0);
-		}
+		// vbo for normals
+		glGenBuffers(1, &vbo_normals);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+		glBufferData(GL_ARRAY_BUFFER, models[i].normals.size() * sizeof(glm::vec3),
+			&models[i].normals[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+		// vbo for uvs
+		glGenBuffers(1, &vbo_uvs);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
+		glBufferData(GL_ARRAY_BUFFER, models[i].uvs.size() * sizeof(glm::vec2),
+			&models[i].uvs[0], GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
+		glGenVertexArrays(1, &(models[i].vao));
+		glBindVertexArray(models[i].vao);
+		
+		// Bind vertices to vao
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
+		glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(position_id);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
+		glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(normal_id);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
+		glVertexAttribPointer(uv_id, 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(uv_id);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		
+		glBindVertexArray(0);
+		
 	}
 	////**************************** old InitBuffer
 
@@ -593,7 +594,7 @@ void InitBuffers()
 void InitObjects()
 {
 	// LIGHT
-	light.position = glm::vec3(120.0, 120.0, 120.0);
+	light.position = glm::vec3(4.0, 4.0, 4.0);
 
 	glm::mat4 ignore = glm::mat4();
 
@@ -605,6 +606,7 @@ void InitObjects()
 		256,
 		false
 	};
+	ignore = glm::translate(ignore, glm::vec3(0.6f, 1.8f, 4.0f));
 	models.emplace_back("objects/teapot.obj", "textures/Yellobrk.bmp", matte, ignore);
 
 	// FLOOR
@@ -622,9 +624,9 @@ int main(int argc, char ** argv)
 {
     InitGlutGlew(argc, argv);
     InitShaders();
-    InitMatrices();
-	InitObjects();
 	InitCameras(); // Init cameras
+	InitObjects();
+	InitMatrices();
     InitBuffers();
 
 /*
