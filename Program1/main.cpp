@@ -15,8 +15,7 @@
 #include "glsl.h"
 #include "objloader.hpp"
 #include "texture.hpp"
-#include "ModelHandler.h"
-#include "Model.cpp"
+#include "Model.h"
 
 using namespace std;
 
@@ -137,7 +136,7 @@ glm::mat4 mvp;
 CameraMode cameraMode = CameraMode::View;
 Camera camera;
 LightSource light;
-ModelHandler model_handler = ModelHandler();
+vector<Model> models;
 
 float rightX = -camera.center.z;
 float rightZ = camera.center.x;
@@ -296,70 +295,40 @@ void Render()
     mvp = projection * view * model;*/
 	//glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 
-
-	Model* oc = model_handler.getModel("Old_cottage");
-
-	if(oc->material.applied)
+	cout << models.size() << endl;
+	for (int i = 0; i < models.size(); ++i)
 	{
-		glUniform1i(uniform_apply_texture, 1);
-		glBindTexture(GL_TEXTURE_2D, oc->textureID);
+		Model model = models[i];
+		
+		//model.mv = view * model.model;
+
+		if(model.material.applied)
+		{
+			glUniform1i(uniform_apply_texture, 1);
+			glBindTexture(GL_TEXTURE_2D, model.textureID);
+		}
+		else
+			glUniform1i(uniform_apply_texture, 0);
+
+
+		glUniformMatrix4fv(uniform_mv, 1, GL_FALSE, glm::value_ptr(model.mv));
+		glUniform3fv(uniform_material_ambient, 1, glm::value_ptr(model.material.ambientColor));
+		glUniform3fv(uniform_material_diffuse, 1, glm::value_ptr(model.material.diffuseColor));
+		glUniform3fv(uniform_material_specular, 1, glm::value_ptr(model.material.specular));
+		glUniform1f(uniform_material_power, model.material.power);
+
+		glBindVertexArray(model.vao);
+		glDrawArrays(GL_TRIANGLES, 0, model.vertices.size());
+		glBindVertexArray(0);
 	}
-	else
-		glUniform1i(uniform_apply_texture, 0);
-
-	glUniformMatrix4fv(uniform_mv, 1, GL_FALSE, glm::value_ptr(oc->mv));
-	glUniform3fv(uniform_material_ambient, 1, glm::value_ptr(oc->material.ambientColor));
-	glUniform3fv(uniform_material_diffuse, 1, glm::value_ptr(oc->material.diffuseColor));
-	glUniform3fv(uniform_material_specular, 1, glm::value_ptr(oc->material.specular));
-	glUniform1f(uniform_material_power, oc->material.power);
-
-	glBindVertexArray(oc->vao);
-	glDrawArrays(GL_TRIANGLES, 0, oc->vertices.size());
-	glBindVertexArray(0);
-
 	glutSwapBuffers();
 
-	//for(std::map<string, Model>::iterator modelMap = model_handler.getModelsIterator();
-	//	modelMap != model_handler.getLastModelIterator();
-	//	modelMap++)
-	//{
-	//	Model model = modelMap->second;
 
-	//	if(modelPrint < model_handler.getModelCount())
-	//	{
-	//		model_handler.printModel(model, modelMap->first);
-	//		modelPrint++;
-	//	}
-	//	
-	//	//model.mv = view * model.model;
-
-	//	if(model.material.applied)
-	//	{
-	//		glUniform1i(uniform_apply_texture, 1);
-	//		glBindTexture(GL_TEXTURE_2D, model.textureID);
-	//	}
-	//	else
-	//		glUniform1i(uniform_apply_texture, 0);
-
-
-	//	glUniformMatrix4fv(uniform_mv, 1, GL_FALSE, glm::value_ptr(model.mv));
-	//	glUniform3fv(uniform_material_ambient, 1, glm::value_ptr(model.material.ambientColor));
-	//	glUniform3fv(uniform_material_diffuse, 1, glm::value_ptr(model.material.diffuseColor));
-	//	glUniform3fv(uniform_material_specular, 1, glm::value_ptr(model.material.specular));
-	//	glUniform1f(uniform_material_power, model.material.power);
-
-	//	glBindVertexArray(model.vao);
-	//	glDrawArrays(GL_TRIANGLES, 0, model.vertices.size());
-	//	glBindVertexArray(0);
-	//}
-	//glutSwapBuffers();
-
-
-	//// Send vao
-	//glBindVertexArray(vao);
-	//glDrawElements(GL_LINES, sizeof(cube_elements) / sizeof(GLushort),
-	//	GL_UNSIGNED_SHORT, 0);
-	//glBindVertexArray(0);
+	// Send vao
+	glBindVertexArray(vao);
+	glDrawElements(GL_LINES, sizeof(cube_elements) / sizeof(GLushort),
+		GL_UNSIGNED_SHORT, 0);
+	glBindVertexArray(0);
 }
 
 
@@ -429,16 +398,9 @@ void InitShaders()
 
 void InitMatrices()
 {
-    // model = glm::mat4();
-	
-    // view = glm::lookAt(
-        // glm::vec3(2.0, 2.0, 7.0),
-        // glm::vec3(0.0, 0.0, 0.0),
-        // glm::vec3(0.0, 1.0, 0.0));
-	string og = "Ondergrond";
-	Model* ogModel = model_handler.getModel(og);
-	ogModel->model = glm::translate(glm::mat4(), glm::vec3(40, -2.5, -15));
-	ogModel->model = glm::scale(ogModel->model, glm::vec3(144, 1, 48));
+    
+	models[1].model = glm::translate(glm::mat4(), glm::vec3(40, -2.5, -15));
+	models[1].model = glm::scale(models[1].model, glm::vec3(144, 1, 48));
 
 	// Set the camera
 	view = glm::lookAt(
@@ -453,9 +415,36 @@ void InitMatrices()
         20.0f);
     // mvp = projection * view * model;
 
-	ogModel->mv = view * ogModel->model;
+	for (int i = 0; i < models.size(); ++i)
+	{
+		models[i].mv = view * models[i].model;
+	}
 }
 
+bool checkModelComplete(Model model, int i)
+{
+	//Model test = empty_model;
+
+	//if (model.vertices == empty_model.vertices ||
+	//	model.normals == empty_model.normals ||
+	//	model.uvs == empty_model.uvs ||
+	//	(
+	//		model.material.ambientColor == empty_model.material.ambientColor &&
+	//		model.material.diffuseColor == empty_model.material.diffuseColor &&
+	//		model.material.specular == empty_model.material.specular &&
+	//		model.material.power == empty_model.material.power &&
+	//		model.material.applied == empty_model.material.applied
+	//		) || model.textureID == empty_model.textureID)
+	//	// model.model == empty_model.model  ||
+	//	// model.mv    == empty_model.mv     ||  These are not included because they will be changed by OpenGL while rendering.
+	//	// model.vao   == empty_model.vao    ||
+	//{
+	//	cout << name << " model is incomplete." << endl;
+	//	return false;
+	//}
+	//cout << "Model " << name << " is complete" << endl;
+	return true;
+}
 
 //------------------------------------------------------------
 // void InitBuffers()
@@ -487,21 +476,19 @@ void InitBuffers()
 	glUniformMatrix4fv(uniform_proj, 1, GL_FALSE, glm::value_ptr(projection));
 	glUniform3fv(uniform_light_pos, 1, glm::value_ptr(light.position));
 
-	for(std::map<string, Model>::iterator modelMap = model_handler.getModelsIterator(); 
-		modelMap != model_handler.getLastModelIterator();
-		modelMap++)
+
+	for (int i = 0; i < models.size(); ++i)
 	{
-		Model model = modelMap->second;
-		model_handler.printModel(modelMap->first);
+		Model model = models[i];
 		
-		if(model_handler.checkModelComplete(modelMap->first))
+		if(checkModelComplete(model, i))
 		{
-			cout << "Model " << modelMap->first << " is being rendered!" << endl;
+			cout << "Model " << i << " is being rendered!" << endl;
 
 			// vbo for vertices
 			glGenBuffers(1, &vbo_vertices);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
-			glBufferData(GL_ARRAY_BUFFER, model_handler.getModelCount() * sizeof(glm::vec3),
+			glBufferData(GL_ARRAY_BUFFER, model.vertices.size() * sizeof(glm::vec3),
 				&model.vertices[0], GL_STATIC_DRAW);
 			glBindBuffer(GL_ARRAY_BUFFER, 0);
 		
@@ -605,39 +592,30 @@ void InitBuffers()
 
 void InitObjects()
 {
+	// LIGHT
 	light.position = glm::vec3(120.0, 120.0, 120.0);
 
-	string oc = "Old_cottage";
-	model_handler.initModel(oc);
+	glm::mat4 ignore = glm::mat4();
 
-	model_handler.loadObject(oc, "objects/teapot.obj", "textures/Yellobrk.bmp");
-	model_handler.loadMaterialsLight(
-		oc,
+	// TEAPOT
+	Material matte = {
 		glm::vec3(0.3, 0.3, 0.3),
 		glm::vec3(0.5, 0.5, 0.0),
 		glm::vec3(1.0),
 		256,
 		false
-	);
+	};
+	models.emplace_back("objects/teapot.obj", "textures/Yellobrk.bmp", matte, ignore);
 
-	string og = "Ondergrond";
-	model_handler.initModel(og);
-	model_handler.loadObject(og, "objects/box.obj", "textures/XOndergrond.bmp");
-	model_handler.loadMaterialsLight(
-		og,
+	// FLOOR
+	Material floor = {
 		glm::vec3(0.3, 0.3, 0.0),
 		glm::vec3(0.5, 0.5, 0.0),
 		glm::vec3(1.0),
 		128,
 		true
-	);
-
-	//Model* m = model_handler.getModel(oc);
-	//string a = "objects/sphere.obj";
-	//bool res = loadOBJ(a.c_str(), m->vertices, m->uvs, m->normals);
-
-	//model_handler.initModel("Pinda");
-	// cout << model_handler.getModelCount() << endl;
+	};
+	models.emplace_back("objects/box.obj", "textures/XOndergrond.bmp", floor, ignore);
 }
 
 int main(int argc, char ** argv)

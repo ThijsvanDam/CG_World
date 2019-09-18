@@ -1,17 +1,13 @@
-﻿#pragma once
-
-#include <GL/glew.h>
-
-#include "Material.cpp"
+﻿
+#pragma once
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtx/string_cast.hpp>
-
 #include "glsl.h"
 #include <vector>
+#include "Material.cpp"
+using namespace std;
 
-struct Model {
+class Model {
+public:
 	// Mesh variables
 	vector<glm::vec3> vertices;
 	vector<glm::vec3> normals;
@@ -22,4 +18,6 @@ struct Model {
 	glm::mat4 mv;
 	GLuint vao;
 	GLuint textureID;
+
+	Model(const char* objectPath, const char* texturePath, Material material, glm::mat4 modelMatrix);
 };
