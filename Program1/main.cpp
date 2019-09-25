@@ -214,9 +214,10 @@ void mouseHandler(int x, int y)
 // Position and Camera Handling
 //--------------------------------------------------------------------------------
 void calculateCameraEye(float cameraEyeDeltaX, float cameraEyeDeltaZ) {
-	// Only the X and the Y will be used for 
-	camera.eye.x += (cameraEyeDeltaZ * camera.center.x * 0.2f) + (cameraEyeDeltaX * rightX * 0.2f);
-	camera.eye.z += (cameraEyeDeltaZ * camera.center.z * 0.2f) + (cameraEyeDeltaX * rightZ * 0.2f);
+	// Only the X and the Y will be used for
+	float walkingSpeed = 0.2f;
+	camera.eye.x += (cameraEyeDeltaZ * camera.center.x * walkingSpeed) + (cameraEyeDeltaX * rightX * walkingSpeed);
+	camera.eye.z += (cameraEyeDeltaZ * camera.center.z * walkingSpeed) + (cameraEyeDeltaX * rightZ * walkingSpeed);
 }
 
 float calculatedAngleForCameraCenterX = 0.0f;
@@ -225,10 +226,13 @@ float calculatedAngleForCameraCenterY = 0.0f;
 void calculateCameraCenter(float cameraCenterDeltaX, float cameraCenterDeltaY) {
 	calculatedAngleForCameraCenterX += cameraCenterDeltaX + mouseDeltaX;
 	calculatedAngleForCameraCenterY += cameraCenterDeltaY + mouseDeltaY;
+
+	// maybe set a max X and Y calculatedAngle
+	
 	mouseDeltaX = 0;
 	mouseDeltaY = 0;
 	camera.center.x =  sin(calculatedAngleForCameraCenterX);
-	camera.center.y =  sin(calculatedAngleForCameraCenterY);
+	camera.center.y =  -sin(calculatedAngleForCameraCenterY);
 	camera.center.z = -cos(calculatedAngleForCameraCenterX);
 	rightX = -camera.center.z;
 	rightZ = camera.center.x;
@@ -237,7 +241,7 @@ void calculateCameraCenter(float cameraCenterDeltaX, float cameraCenterDeltaY) {
 void InitCameras() {
 
 	// View camera definition, this one is static!
-	glm::vec3  viewCameraPosition = { 20.0f, 20.0f, 80.0f };
+	glm::vec3  viewCameraPosition = { -20.0f, 20.0f, -20.0f };
 	glm::vec3 viewCameraAngle = { 0.0f, -0.0f, -0.0f };
 	cameras[int(CameraMode::View)] = { viewCameraPosition, viewCameraAngle };
 
@@ -277,12 +281,15 @@ void Render()
 	// Reset transformations
 	glLoadIdentity();
 
+	
 	// Set the camera
-	//view = glm::lookAt(
-	//	camera.eye,
-	//	glm::vec3(camera.eye.x + camera.center.x, camera.center.y, camera.eye.z + camera.center.z),
-	//	camera.up
-	//);
+	view = glm::lookAt(
+		camera.eye,
+		glm::vec3(camera.eye.x + camera.center.x, camera.center.y, camera.eye.z + camera.center.z),
+		// camera.center,
+		camera.up
+	);
+	
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -290,19 +297,14 @@ void Render()
 	glUseProgram(shader_id);
 
     // Do transformation
-    /*model = glm::rotate(model, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
-    mvp = projection * view * model;*/
-	//glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
+
 	for (int i = 0; i < models.size(); ++i)
 	{
 
-		// model.model = glm::rotate(model.model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		 // model.model = glm::rotate(model.model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	
-
-
+		if( i == 0)
+			models[i].model = glm::rotate(models[i].model, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
 		
-		//models[i].mv = view * models[i].model;
+		models[i].mv = view * models[i].model;
 
 		// if(models[i].material.applied)
 		// {
@@ -405,24 +407,19 @@ void InitMatrices()
 
 	//ignore = glm::translate(ignore, glm::vec3(1000.0f, 0.0f, 0.0f));
 
-	// Set the camera
-	int overviewDistance = 20;
-	view = glm::lookAt(
-		glm::vec3(-overviewDistance, overviewDistance, -overviewDistance),
-		glm::vec3(0.0, 0.0, 0.0),
-		glm::vec3(0.0, 1.0, 0.0));
-	/*
+	
 	view = glm::lookAt(
 		camera.eye,
-		glm::vec3(camera.eye.x + camera.center.x, 1.75f + camera.center.y, camera.eye.z + camera.center.z),
+		// glm::vec3(camera.eye.x + camera.center.x, 1.75f + camera.center.y, camera.eye.z + camera.center.z),
+		camera.center,
 		camera.up
-	);*/
-
+	);
+	
     projection = glm::perspective(
         glm::radians(45.0f),
         1.0f * WIDTH / HEIGHT, 0.1f,
         400.0f);
-    // mvp = projection * view * model;
+    mvp = projection * view * model;
 
 	for (int i = 0; i < models.size(); i++)
 	{
