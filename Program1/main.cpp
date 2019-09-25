@@ -278,11 +278,11 @@ void Render()
 	glLoadIdentity();
 
 	// Set the camera
-	view = glm::lookAt(
-		camera.eye,
-		glm::vec3(camera.eye.x + camera.center.x, camera.center.y, camera.eye.z + camera.center.z),
-		camera.up
-	);
+	//view = glm::lookAt(
+	//	camera.eye,
+	//	glm::vec3(camera.eye.x + camera.center.x, camera.center.y, camera.eye.z + camera.center.z),
+	//	camera.up
+	//);
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -304,13 +304,13 @@ void Render()
 		
 		//models[i].mv = view * models[i].model;
 
-		if(models[i].material.applied)
-		{
+		// if(models[i].material.applied)
+		// {
 			glUniform1i(uniform_apply_texture, 1);
 			glBindTexture(GL_TEXTURE_2D, models[i].textureID);
-		}
-		else
-			glUniform1i(uniform_apply_texture, 0);
+		// }
+		// else
+			// glUniform1i(uniform_apply_texture, 0);
 
 		glUniformMatrix4fv(uniform_mv, 1, GL_FALSE, glm::value_ptr(models[i].mv));
 		glUniform3fv(uniform_material_ambient, 1, glm::value_ptr(models[i].material.ambientColor));
@@ -406,14 +406,13 @@ void InitMatrices()
 	//ignore = glm::translate(ignore, glm::vec3(1000.0f, 0.0f, 0.0f));
 
 	// Set the camera
-
-
+	int overviewDistance = 20;
 	view = glm::lookAt(
-		glm::vec3(0.0, 2.0, 6.0),
-		glm::vec3(1.5, 0.5, 0.0),
+		glm::vec3(-overviewDistance, overviewDistance, -overviewDistance),
+		glm::vec3(0.0, 0.0, 0.0),
 		glm::vec3(0.0, 1.0, 0.0));
-	
-	/*view = glm::lookAt(
+	/*
+	view = glm::lookAt(
 		camera.eye,
 		glm::vec3(camera.eye.x + camera.center.x, 1.75f + camera.center.y, camera.eye.z + camera.center.z),
 		camera.up
@@ -596,9 +595,9 @@ void InitObjects()
 	// LIGHT
 	light.position = glm::vec3(4.0, 4.0, 4.0);
 
-	glm::mat4 ignore = glm::mat4();
 
 	// TEAPOT
+	glm::mat4 teapotMatrix = glm::mat4();
 	Material matte = {
 		glm::vec3(0.3, 0.3, 0.3),
 		glm::vec3(0.5, 0.5, 0.0),
@@ -606,10 +605,13 @@ void InitObjects()
 		256,
 		false
 	};
-	ignore = glm::translate(ignore, glm::vec3(0.6f, 1.8f, 4.0f));
-	models.emplace_back("objects/teapot.obj", "textures/Yellobrk.bmp", matte, ignore);
+	teapotMatrix = glm::translate(teapotMatrix, glm::vec3(0.6f, 2.8f, 0.0f));
+	float scaleFactor = 3.0f;
+	teapotMatrix = glm::scale(teapotMatrix, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
+	models.emplace_back("objects/teapot.obj", "textures/XOndergrond.bmp", matte, teapotMatrix);
 
 	// FLOOR
+	glm::mat4 floorMatrix = glm::mat4();
 	Material floor = {
 		glm::vec3(0.3, 0.3, 0.0),
 		glm::vec3(0.5, 0.5, 0.0),
@@ -617,7 +619,9 @@ void InitObjects()
 		128,
 		true
 	};
-	models.emplace_back("objects/box.obj", "textures/XOndergrond.bmp", floor, ignore);
+	floorMatrix = glm::translate(floorMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
+	floorMatrix = glm::scale(floorMatrix, glm::vec3(100.0f, 1.0f, 100.0f));
+	models.emplace_back("objects/box.obj", "textures/XOndergrond.bmp", floor, floorMatrix);
 }
 
 int main(int argc, char ** argv)
