@@ -268,7 +268,6 @@ void switchCameraMode()
 //--------------------------------------------------------------------------------
 float z = 15.0;
 float offset = 0.5;
-int modelPrint = 0;
 
 void Render()
 {
@@ -407,19 +406,24 @@ void InitMatrices()
 
 	//ignore = glm::translate(ignore, glm::vec3(1000.0f, 0.0f, 0.0f));
 
-	
+	//
+	// view = glm::lookAt(
+	// 	camera.eye,
+	// 	glm::vec3(camera.eye.x + camera.center.x, 1.75f + camera.center.y, camera.eye.z + camera.center.z),
+	// 	// camera.center,
+	// 	camera.up
+	// );
+
 	view = glm::lookAt(
 		camera.eye,
-		// glm::vec3(camera.eye.x + camera.center.x, 1.75f + camera.center.y, camera.eye.z + camera.center.z),
-		camera.center,
+		glm::vec3(1.5, 0.5, 0.0),
 		camera.up
 	);
-	
+
     projection = glm::perspective(
         glm::radians(45.0f),
         1.0f * WIDTH / HEIGHT, 0.1f,
         400.0f);
-    mvp = projection * view * model;
 
 	for (int i = 0; i < models.size(); i++)
 	{

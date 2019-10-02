@@ -2,6 +2,6 @@
   main.cpp
 C:\Users\Thijs-PC\Source\Repos\CG_World\Program1\main.cpp(208,18): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
 C:\Users\Thijs-PC\Source\Repos\CG_World\Program1\main.cpp(209,18): warning C4244:  '=': conversion from 'int' to 'float', possible loss of data
-C:\Users\Thijs-PC\Source\Repos\CG_World\Program1\main.cpp(301,20): warning C4018:  '<': signed/unsigned mismatch
-C:\Users\Thijs-PC\Source\Repos\CG_World\Program1\main.cpp(424,20): warning C4018:  '<': signed/unsigned mismatch
+C:\Users\Thijs-PC\Source\Repos\CG_World\Program1\main.cpp(300,20): warning C4018:  '<': signed/unsigned mismatch
+C:\Users\Thijs-PC\Source\Repos\CG_World\Program1\main.cpp(428,20): warning C4018:  '<': signed/unsigned mismatch
   Program1.vcxproj -> C:\Users\Thijs-PC\Source\Repos\CG_World\Debug\ProjectProgram.exe
