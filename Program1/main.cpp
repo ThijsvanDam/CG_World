@@ -32,52 +32,6 @@ unsigned const int DELTA = 10;
 // Mesh variables
 //--------------------------------------------------------------------------------
 
-//------------------------------------------------------------
-// Variables for object
-//
-//           7----------6
-//          /|         /|
-//         / |        / |
-//        /  4-------/--5               y
-//       /  /       /  /                |
-//      3----------2  /                 ----x
-//      | /        | /                 /
-//      |/         |/                  z
-//      0----------1
-//------------------------------------------------------------
-
-const GLfloat vertices[] = {
-    // front
-    -1.0, -1.0, 1.0,
-    1.0, -1.0, 1.0,
-    1.0, 1.0, 1.0,
-    -1.0, 1.0, 1.0,
-    // back
-    -1.0, -1.0, -1.0,
-    1.0, -1.0, -1.0,
-    1.0, 1.0, -1.0,
-    -1.0, 1.0, -1.0,
-};
-
-const GLfloat colors[] = {
-    // front colors
-    1.0, 1.0, 0.0,
-    0.0, 1.0, 0.0,
-    0.0, 0.0, 1.0,
-    1.0, 1.0, 1.0,
-    // back colors
-    0.0, 1.0, 1.0,
-    1.0, 0.0, 1.0,
-    1.0, 0.0, 0.0,
-    1.0, 1.0, 0.0,
-};
-
-GLushort cube_elements[] = {
-    0,1,1,2,2,3,3,0,  // front
-    0,4,1,5,3,7,2,6,  // front to back
-    4,5,5,6,6,7,7,4   //back
-};
-
 
 /// These variables will change if the mouse moves
 float mouseOriginX = -1;
@@ -89,11 +43,9 @@ float mouseDeltaY = 0.0f;
 // These variables will change if the key state changes
 float cameraEyeDeltaX = 0.0f, cameraEyeDeltaZ = 0.0f, cameraCenterDeltaY = 0.0f, cameraCenterDeltaX = 0.0f;
 
-float mouseMovementSpeed = 0.2f;
+float mouseMovementSpeed = 1.0f;
 float movementSpeed = 0.5f;
 float lookAroundSpeed = .1f;
-
-void switchCameraMode();
 
 //--------------------------------------------------------------------------------
 // Type definitions
@@ -103,18 +55,33 @@ struct LightSource {
 	glm::vec3 position;
 };
 
-struct Camera
-{
-	glm::vec3 eye;
-	glm::vec3 center;
-	glm::vec3 up = { 0.0, 0.1, 0.0 };
-} cameras[2];
+// angle (in PI) of rotation for the camera direction
+float angleX = 0.0f;
+float angleY = 0.0f;
 
-enum class CameraMode
-{
-	View = 0, Walk = 1
-};
+// actual vector representing the camera's direction
+float lx = 0.0f, lz = -1.0f, ly = 0.0f;
+float rightX = -lz;
+float rightZ = lx;
 
+// XYZ position of the camera
+float x = 0.0f, z = 5.0f, y = 1.75f;
+
+
+float mousedeltaAngleX = 0.0f;
+float mousedeltaAngleY = 0.0f;
+float deltaAngleX = 0.0f;
+float deltaAngleY = 0.0f;
+float deltaMoveX = 0;
+float deltaMoveZ = 0;
+int xOrigin = 0;
+int yOrigin = 0;
+bool direction = false;
+bool movableCamera = true;
+
+float tempx, templx, temply, tempz, templz, tempy;
+
+float moveSpeed = 0.2f;
 //--------------------------------------------------------------------------------
 // Variables
 //--------------------------------------------------------------------------------
@@ -133,43 +100,72 @@ GLuint uniform_material_power;
 glm::mat4 model, view, projection;
 glm::mat4 mvp;
 
-CameraMode cameraMode = CameraMode::View;
-Camera camera;
 LightSource light;
 vector<Model> models;
-
-float rightX = -camera.center.z;
-float rightZ = camera.center.x;
 
 
 //--------------------------------------------------------------------------------
 // Keyboard and mouse handling
 //--------------------------------------------------------------------------------
 
+
+void mouseHandler(int x, int y)
+{
+	if (movableCamera) {
+		if (xOrigin >= 0) {
+
+			// update deltaAngle
+			mousedeltaAngleX = (x - xOrigin) * lookAroundSpeed;
+		}
+		if (yOrigin >= 0) {
+
+			// update deltaAngle
+			mousedeltaAngleY = (y - yOrigin) * lookAroundSpeed;
+		}
+		xOrigin = x;
+		yOrigin = y;
+	}
+}
+
+
+void switchCamera() {
+	if (movableCamera == true) {
+		tempx = x; tempy = y; tempz = z; templx = lx; temply = ly; templz = lz;
+		movableCamera = false;
+		x = 94, y = 40, z = 0;
+		lx = -30, ly = 10, lz = 0;
+	}
+	else if (movableCamera == false) {
+		x = tempx; y = tempy; z = tempz; lx = templx; ly = temply; lz = templz;
+		movableCamera = true;
+	}
+}
+
+
 void pressKeyHandler(unsigned char key, int a, int b)
 {
-	switch(key)
+	switch (key)
 	{
 	case 27:
 		glutExit();
 
 	case 'c':
-		switchCameraMode();
+		switchCamera();
 		break;
 	}
 
-	if(cameraMode == CameraMode::Walk)
+	if (movableCamera)
 	{
 		switch (key)
 		{
-		case 'w': cameraEyeDeltaZ =  movementSpeed; break;
-		case 's': cameraEyeDeltaZ = -movementSpeed; break;
-		case 'd': cameraEyeDeltaX =  movementSpeed; break;
-		case 'a': cameraEyeDeltaX = -movementSpeed; break;
-		case 'i': cameraCenterDeltaY =  lookAroundSpeed; break;
-		case 'k': cameraCenterDeltaY = -lookAroundSpeed; break;
-		case 'l': cameraCenterDeltaX =  lookAroundSpeed; break;
-		case 'j': cameraCenterDeltaX = -lookAroundSpeed; break;
+		case 'w': deltaMoveZ = movementSpeed; break;
+		case 's': deltaMoveZ = -movementSpeed; break;
+		case 'd': deltaMoveX = movementSpeed; break;
+		case 'a': deltaMoveX = -movementSpeed; break;
+		case 'i': deltaAngleY = lookAroundSpeed; break;
+		case 'k': deltaAngleY = -lookAroundSpeed; break;
+		case 'l': deltaAngleX = lookAroundSpeed; break;
+		case 'j': deltaAngleX = -lookAroundSpeed; break;
 		}
 	}
 }
@@ -178,104 +174,60 @@ void releaseKeyHandler(unsigned char key, int a, int b)
 {
 	switch (key) {
 	case 'w':
-	case 's': cameraEyeDeltaZ = 0.0f; 
+	case 's': deltaMoveZ = 0.0f;
 		break;
 	case 'd':
-	case 'a': cameraEyeDeltaX = 0.0f; 
+	case 'a': deltaMoveX = 0.0f;
 		break;
 	case 'i':
-	case 'k': cameraCenterDeltaY = 0.0f; 
+	case 'k': deltaAngleY = 0.0f;
 		break;
 	case 'l':
-	case 'j': cameraCenterDeltaX = 0.0f; 
+	case 'j': deltaAngleX = 0.0f;
 		break;
 	}
 }
-
-void mouseHandler(int x, int y)
-{
-	if(cameraMode == CameraMode::Walk)
-	{
-		if (mouseOriginX >= 0)
-		{
-			mouseDeltaX = (x - mouseOriginX) * mouseMovementSpeed;
-		}
-
-		if (mouseOriginY >= 0)
-		{
-			mouseDeltaY = (y - mouseOriginY) * -mouseMovementSpeed;
-		}
-		mouseOriginX = x;
-		mouseOriginY = y;
-	}
-}
-
 //--------------------------------------------------------------------------------
 // Position and Camera Handling
 //--------------------------------------------------------------------------------
-void calculateCameraEye(float cameraEyeDeltaX, float cameraEyeDeltaZ) {
-	// Only the X and the Y will be used for
-	float walkingSpeed = 0.2f;
-	camera.eye.x += (cameraEyeDeltaZ * camera.center.x * walkingSpeed) + (cameraEyeDeltaX * rightX * walkingSpeed);
-	camera.eye.z += (cameraEyeDeltaZ * camera.center.z * walkingSpeed) + (cameraEyeDeltaX * rightZ * walkingSpeed);
+void calculateCameraEye(float deltaMoveX, float cameraEydeltaMoveZeDeltaZ, float moveSpeed) {
+
+	x += deltaMoveZ * lx * moveSpeed;
+	z += deltaMoveZ * lz * moveSpeed;
+	x += deltaMoveX * rightX * moveSpeed;
+	z += deltaMoveX * rightZ * moveSpeed;
 }
 
 float calculatedAngleForCameraCenterX = 0.0f;
 float calculatedAngleForCameraCenterY = 0.0f;
 
-void calculateCameraCenter(float cameraCenterDeltaX, float cameraCenterDeltaY) {
-	calculatedAngleForCameraCenterX += cameraCenterDeltaX + mouseDeltaX;
-	calculatedAngleForCameraCenterY += cameraCenterDeltaY + mouseDeltaY;
+void calculateCameraCenter(float internaldeltaAngleX, float internaldeltaAngleY) {
+	angleX += internaldeltaAngleX + mousedeltaAngleX;
+	angleY += internaldeltaAngleY + mousedeltaAngleY;
 
-	// maybe set a max X and Y calculatedAngle
-	
-	mouseDeltaX = 0;
-	mouseDeltaY = 0;
-	camera.center.x =  sin(calculatedAngleForCameraCenterX);
-	camera.center.y =  -sin(calculatedAngleForCameraCenterY);
-	camera.center.z = -cos(calculatedAngleForCameraCenterX);
-	rightX = -camera.center.z;
-	rightZ = camera.center.x;
+	if (angleY >= 1.57f) angleY = 1.57f;
+	if (angleY <= -1.57f) angleY = -1.57f;
+
+	mousedeltaAngleX = 0;
+	mousedeltaAngleY = 0;
+	lx = sin(angleX);
+	ly = -sin(angleY);
+	lz = -cos(angleX);
+	rightX = -lz;
+	rightZ = lx;
 }
-
-void InitCameras() {
-
-	// View camera definition, this one is static!
-	glm::vec3  viewCameraPosition = { -20.0f, 20.0f, -20.0f };
-	glm::vec3 viewCameraAngle = { 0.0f, -0.0f, -0.0f };
-	cameras[int(CameraMode::View)] = { viewCameraPosition, viewCameraAngle };
-
-	// Walk camera definition, this one is dynamic!
-	glm::vec3 walkCameraPosition = { 0.0f, 2.0f, 6.0f };
-	glm::vec3 walkCameraAngle = { 1.5f, 0.5f, 0.0f };
-	cameras[int(CameraMode::Walk)] = { walkCameraPosition, walkCameraAngle };
-
-	camera = cameras[int(cameraMode)];
-}
-
-void switchCameraMode()
-{
-	cameraMode = bool(cameraMode) ? CameraMode::View : CameraMode::Walk;
-	const string cCstring = bool(cameraMode) ? "view" : "walk";
-	cout << "Switch camera to [" << cCstring << "] mode." << endl;
-	camera = cameras[int(cameraMode)];
-} 
-
-
 
 //--------------------------------------------------------------------------------
 // Rendering
 //--------------------------------------------------------------------------------
-float z = 15.0;
-float offset = 0.5;
 
 void Render()
 {
-	if (cameraEyeDeltaX != 0.0f || cameraEyeDeltaZ != 0.0f)
-		calculateCameraEye(cameraEyeDeltaX, cameraEyeDeltaZ); // #TODO: Movementspeed?
+	if (deltaMoveX != 0.0f || deltaMoveZ != 0.0f)
+		calculateCameraEye(deltaMoveX, deltaMoveZ, moveSpeed); // #TODO: Movementspeed?
 
-	if (cameraCenterDeltaX || cameraCenterDeltaY || mouseDeltaX || mouseDeltaY)
-			calculateCameraCenter(cameraCenterDeltaX, cameraCenterDeltaY);
+	if (deltaAngleX || deltaAngleY || mousedeltaAngleX || mousedeltaAngleY)
+			calculateCameraCenter(deltaAngleX, deltaAngleY);
 
 	// Reset transformations
 	glLoadIdentity();
@@ -283,10 +235,9 @@ void Render()
 	
 	// Set the camera
 	view = glm::lookAt(
-		camera.eye,
-		glm::vec3(camera.eye.x + camera.center.x, camera.center.y, camera.eye.z + camera.center.z),
-		// camera.center,
-		camera.up
+		glm::vec3(x, y, z),
+		glm::vec3(x + lx, 1.75f + ly, z + lz),
+		glm::vec3(0.0, 1.0, 0.0)
 	);
 	
 	glClearColor(1.0, 1.0, 1.0, 1.0);
@@ -415,9 +366,9 @@ void InitMatrices()
 	// );
 
 	view = glm::lookAt(
-		camera.eye,
+		glm::vec3(0.0, 2.0, 6.0),
 		glm::vec3(1.5, 0.5, 0.0),
-		camera.up
+		glm::vec3(0.0, 1.0, 0.0)
 	);
 
     projection = glm::perspective(
@@ -620,7 +571,7 @@ void InitObjects()
 		128,
 		true
 	};
-	floorMatrix = glm::translate(floorMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
+	floorMatrix = glm::translate(floorMatrix, glm::vec3(50.0f, -1.0f, 0.0f));
 	floorMatrix = glm::scale(floorMatrix, glm::vec3(100.0f, 1.0f, 100.0f));
 	models.emplace_back("objects/box.obj", "textures/XOndergrond.bmp", floor, floorMatrix);
 }
@@ -629,7 +580,6 @@ int main(int argc, char ** argv)
 {
     InitGlutGlew(argc, argv);
     InitShaders();
-	InitCameras(); // Init cameras
 	InitObjects();
 	InitMatrices();
     InitBuffers();
