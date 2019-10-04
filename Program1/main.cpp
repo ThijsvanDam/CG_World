@@ -28,60 +28,9 @@ const char * fragshader_name = "fragmentshader.fsh";
 const char * vertexshader_name = "vertexshader.vsh";
 unsigned const int DELTA = 10;
 
-//--------------------------------------------------------------------------------
-// Mesh variables
-//--------------------------------------------------------------------------------
-
-//------------------------------------------------------------
-// Variables for object
-//
-//           7----------6
-//          /|         /|
-//         / |        / |
-//        /  4-------/--5               y
-//       /  /       /  /                |
-//      3----------2  /                 ----x
-//      | /        | /                 /
-//      |/         |/                  z
-//      0----------1
-//------------------------------------------------------------
-
-const GLfloat vertices[] = {
-    // front
-    -1.0, -1.0, 1.0,
-    1.0, -1.0, 1.0,
-    1.0, 1.0, 1.0,
-    -1.0, 1.0, 1.0,
-    // back
-    -1.0, -1.0, -1.0,
-    1.0, -1.0, -1.0,
-    1.0, 1.0, -1.0,
-    -1.0, 1.0, -1.0,
-};
-
-const GLfloat colors[] = {
-    // front colors
-    1.0, 1.0, 0.0,
-    0.0, 1.0, 0.0,
-    0.0, 0.0, 1.0,
-    1.0, 1.0, 1.0,
-    // back colors
-    0.0, 1.0, 1.0,
-    1.0, 0.0, 1.0,
-    1.0, 0.0, 0.0,
-    1.0, 1.0, 0.0,
-};
-
-GLushort cube_elements[] = {
-    0,1,1,2,2,3,3,0,  // front
-    0,4,1,5,3,7,2,6,  // front to back
-    4,5,5,6,6,7,7,4   //back
-};
-
-
 /// These variables will change if the mouse moves
-float mouseOriginX = -1;
-float mouseOriginY = -1;
+float mouseOriginX = 0;
+float mouseOriginY = 0;
 
 float mouseDeltaX = 0.0f;
 float mouseDeltaY = 0.0f;
@@ -89,9 +38,9 @@ float mouseDeltaY = 0.0f;
 // These variables will change if the key state changes
 float cameraEyeDeltaX = 0.0f, cameraEyeDeltaZ = 0.0f, cameraCenterDeltaY = 0.0f, cameraCenterDeltaX = 0.0f;
 
-float mouseMovementSpeed = 0.2f;
-float movementSpeed = 0.5f;
-float lookAroundSpeed = .1f;
+float mouseMovementSpeed = .01f;
+float movementSpeed = 2.0f;
+float lookAroundSpeed = 10.0f;
 
 void switchCameraMode();
 
@@ -134,12 +83,12 @@ glm::mat4 model, view, projection;
 glm::mat4 mvp;
 
 CameraMode cameraMode = CameraMode::View;
-Camera camera;
+Camera* camera;
 LightSource light;
 vector<Model> models;
 
-float rightX = -camera.center.z;
-float rightZ = camera.center.x;
+float rightX;
+float rightZ;
 
 
 //--------------------------------------------------------------------------------
@@ -166,8 +115,8 @@ void pressKeyHandler(unsigned char key, int a, int b)
 		case 's': cameraEyeDeltaZ = -movementSpeed; break;
 		case 'd': cameraEyeDeltaX =  movementSpeed; break;
 		case 'a': cameraEyeDeltaX = -movementSpeed; break;
-		case 'i': cameraCenterDeltaY =  lookAroundSpeed; break;
-		case 'k': cameraCenterDeltaY = -lookAroundSpeed; break;
+		case 'i': cameraCenterDeltaY = -lookAroundSpeed; break;
+		case 'k': cameraCenterDeltaY =  lookAroundSpeed; break;
 		case 'l': cameraCenterDeltaX =  lookAroundSpeed; break;
 		case 'j': cameraCenterDeltaX = -lookAroundSpeed; break;
 		}
@@ -194,6 +143,7 @@ void releaseKeyHandler(unsigned char key, int a, int b)
 
 void mouseHandler(int x, int y)
 {
+	cout << x << ", " << y << endl;
 	if(cameraMode == CameraMode::Walk)
 	{
 		if (mouseOriginX >= 0)
@@ -203,7 +153,7 @@ void mouseHandler(int x, int y)
 
 		if (mouseOriginY >= 0)
 		{
-			mouseDeltaY = (y - mouseOriginY) * -mouseMovementSpeed;
+			mouseDeltaY = (y - mouseOriginY) * mouseMovementSpeed;
 		}
 		mouseOriginX = x;
 		mouseOriginY = y;
@@ -214,10 +164,9 @@ void mouseHandler(int x, int y)
 // Position and Camera Handling
 //--------------------------------------------------------------------------------
 void calculateCameraEye(float cameraEyeDeltaX, float cameraEyeDeltaZ) {
-	// Only the X and the Y will be used for
 	float walkingSpeed = 0.2f;
-	camera.eye.x += (cameraEyeDeltaZ * camera.center.x * walkingSpeed) + (cameraEyeDeltaX * rightX * walkingSpeed);
-	camera.eye.z += (cameraEyeDeltaZ * camera.center.z * walkingSpeed) + (cameraEyeDeltaX * rightZ * walkingSpeed);
+	camera->eye.x += (cameraEyeDeltaZ * camera->center.x * walkingSpeed) + (cameraEyeDeltaX * rightX * walkingSpeed);
+	camera->eye.z += (cameraEyeDeltaZ * camera->center.z * walkingSpeed) + (cameraEyeDeltaX * rightZ * walkingSpeed);
 }
 
 float calculatedAngleForCameraCenterX = 0.0f;
@@ -227,30 +176,36 @@ void calculateCameraCenter(float cameraCenterDeltaX, float cameraCenterDeltaY) {
 	calculatedAngleForCameraCenterX += cameraCenterDeltaX + mouseDeltaX;
 	calculatedAngleForCameraCenterY += cameraCenterDeltaY + mouseDeltaY;
 
-	// maybe set a max X and Y calculatedAngle
+	if (calculatedAngleForCameraCenterY >= 5.57f) calculatedAngleForCameraCenterY = 5.57f;
+	if (calculatedAngleForCameraCenterY <= -1.57f) calculatedAngleForCameraCenterY = -1.57f;
 	
 	mouseDeltaX = 0;
 	mouseDeltaY = 0;
-	camera.center.x =  sin(calculatedAngleForCameraCenterX);
-	camera.center.y =  -sin(calculatedAngleForCameraCenterY);
-	camera.center.z = -cos(calculatedAngleForCameraCenterX);
-	rightX = -camera.center.z;
-	rightZ = camera.center.x;
+	camera->center.x =  sin(calculatedAngleForCameraCenterX);
+	camera->center.y = -sin(calculatedAngleForCameraCenterY);
+	camera->center.z = -cos(calculatedAngleForCameraCenterX);
+	rightX = -camera->center.z;
+	rightZ = camera->center.x;
 }
 
 void InitCameras() {
 
 	// View camera definition, this one is static!
-	glm::vec3  viewCameraPosition = { -20.0f, 20.0f, -20.0f };
-	glm::vec3 viewCameraAngle = { 0.0f, -0.0f, -0.0f };
+	glm::vec3  viewCameraPosition = { 20.0f, 20.0f, 80.0f };
+	glm::vec3 viewCameraAngle = { 0.0f, -1.0f, -0.0f };
 	cameras[int(CameraMode::View)] = { viewCameraPosition, viewCameraAngle };
 
 	// Walk camera definition, this one is dynamic!
 	glm::vec3 walkCameraPosition = { 0.0f, 2.0f, 6.0f };
-	glm::vec3 walkCameraAngle = { 1.5f, 0.5f, 0.0f };
+	glm::vec3 walkCameraAngle = { 0.0f, -1.0f, 0.0f };
 	cameras[int(CameraMode::Walk)] = { walkCameraPosition, walkCameraAngle };
 
-	camera = cameras[int(cameraMode)];
+	
+	camera = &cameras[int(cameraMode)];
+
+
+	rightZ= -camera->center.z;
+	rightX= camera->center.x;
 }
 
 void switchCameraMode()
@@ -258,7 +213,7 @@ void switchCameraMode()
 	cameraMode = bool(cameraMode) ? CameraMode::View : CameraMode::Walk;
 	const string cCstring = bool(cameraMode) ? "view" : "walk";
 	cout << "Switch camera to [" << cCstring << "] mode." << endl;
-	camera = cameras[int(cameraMode)];
+	camera = &cameras[int(cameraMode)];
 } 
 
 
@@ -275,7 +230,7 @@ void Render()
 		calculateCameraEye(cameraEyeDeltaX, cameraEyeDeltaZ); // #TODO: Movementspeed?
 
 	if (cameraCenterDeltaX || cameraCenterDeltaY || mouseDeltaX || mouseDeltaY)
-			calculateCameraCenter(cameraCenterDeltaX, cameraCenterDeltaY);
+		calculateCameraCenter(cameraCenterDeltaX, cameraCenterDeltaY);
 
 	// Reset transformations
 	glLoadIdentity();
@@ -283,12 +238,12 @@ void Render()
 	
 	// Set the camera
 	view = glm::lookAt(
-		camera.eye,
-		glm::vec3(camera.eye.x + camera.center.x, camera.center.y, camera.eye.z + camera.center.z),
+		camera->eye,
 		// camera.center,
-		camera.up
+		glm::vec3(camera->eye.x + camera->center.x, camera->center.y, camera->eye.z + camera->center.z),
+		camera->up
 	);
-	
+
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -324,12 +279,6 @@ void Render()
 		glBindVertexArray(0);
 	}
 	glutSwapBuffers();
-	//
-	// // Send vao
-	// glBindVertexArray(vao);
-	// glDrawElements(GL_LINES, sizeof(cube_elements) / sizeof(GLushort),
-	// 	GL_UNSIGNED_SHORT, 0);
-	// glBindVertexArray(0);
 }
 
 
@@ -415,9 +364,9 @@ void InitMatrices()
 	// );
 
 	view = glm::lookAt(
-		camera.eye,
+		camera->eye,
 		glm::vec3(1.5, 0.5, 0.0),
-		camera.up
+		camera->up
 	);
 
     projection = glm::perspective(
@@ -622,7 +571,7 @@ void InitObjects()
 	};
 	floorMatrix = glm::translate(floorMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
 	floorMatrix = glm::scale(floorMatrix, glm::vec3(100.0f, 1.0f, 100.0f));
-	models.emplace_back("objects/box.obj", "textures/XOndergrond.bmp", floor, floorMatrix);
+	models.emplace_back("objects/box.obj", "textures/Yellobrk.bmp", floor, floorMatrix);
 }
 
 int main(int argc, char ** argv)
