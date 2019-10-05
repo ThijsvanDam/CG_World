@@ -23,14 +23,14 @@ using namespace std;
 // Consts
 //--------------------------------------------------------------------------------
 
-const int WIDTH = 800, HEIGHT = 600;
+const int WIDTH = 1200, HEIGHT = 800;
 const char * fragshader_name = "fragmentshader.fsh";
 const char * vertexshader_name = "vertexshader.vsh";
 unsigned const int DELTA = 10;
 
 /// These variables will change if the mouse moves
-float mouseOriginX = 0;
-float mouseOriginY = 0;
+int mouseOriginX = 0;
+int mouseOriginY = 0;
 
 float mouseDeltaX = 0.0f;
 float mouseDeltaY = 0.0f;
@@ -38,9 +38,8 @@ float mouseDeltaY = 0.0f;
 // These variables will change if the key state changes
 float cameraEyeDeltaX = 0.0f, cameraEyeDeltaZ = 0.0f, cameraCenterDeltaY = 0.0f, cameraCenterDeltaX = 0.0f;
 
-float mouseMovementSpeed = .01f;
+float mouseMovementSpeed = 0.01f;
 float movementSpeed = 2.0f;
-float lookAroundSpeed = 10.0f;
 
 void switchCameraMode();
 
@@ -107,6 +106,8 @@ void pressKeyHandler(unsigned char key, int a, int b)
 		break;
 	}
 
+	float lookAroundSpeed = 0.01f;
+	
 	if(cameraMode == CameraMode::Walk)
 	{
 		switch (key)
@@ -143,7 +144,6 @@ void releaseKeyHandler(unsigned char key, int a, int b)
 
 void mouseHandler(int x, int y)
 {
-	cout << x << ", " << y << endl;
 	if(cameraMode == CameraMode::Walk)
 	{
 		if (mouseOriginX >= 0)
@@ -164,7 +164,7 @@ void mouseHandler(int x, int y)
 // Position and Camera Handling
 //--------------------------------------------------------------------------------
 void calculateCameraEye(float cameraEyeDeltaX, float cameraEyeDeltaZ) {
-	float walkingSpeed = 0.2f;
+	float walkingSpeed = 0.1f;
 	camera->eye.x += (cameraEyeDeltaZ * camera->center.x * walkingSpeed) + (cameraEyeDeltaX * rightX * walkingSpeed);
 	camera->eye.z += (cameraEyeDeltaZ * camera->center.z * walkingSpeed) + (cameraEyeDeltaX * rightZ * walkingSpeed);
 }
@@ -176,14 +176,15 @@ void calculateCameraCenter(float cameraCenterDeltaX, float cameraCenterDeltaY) {
 	calculatedAngleForCameraCenterX += cameraCenterDeltaX + mouseDeltaX;
 	calculatedAngleForCameraCenterY += cameraCenterDeltaY + mouseDeltaY;
 
-	if (calculatedAngleForCameraCenterY >= 5.57f) calculatedAngleForCameraCenterY = 5.57f;
+	if (calculatedAngleForCameraCenterY >= 1.57f) calculatedAngleForCameraCenterY = 1.57f;
 	if (calculatedAngleForCameraCenterY <= -1.57f) calculatedAngleForCameraCenterY = -1.57f;
 	
 	mouseDeltaX = 0;
 	mouseDeltaY = 0;
-	camera->center.x =  sin(calculatedAngleForCameraCenterX);
-	camera->center.y = -sin(calculatedAngleForCameraCenterY);
-	camera->center.z = -cos(calculatedAngleForCameraCenterX);
+	int a = 5;
+	camera->center.x =  sin(calculatedAngleForCameraCenterX) * a;
+	camera->center.y = -sin(calculatedAngleForCameraCenterY) * a;
+	camera->center.z = -cos(calculatedAngleForCameraCenterX) * a;
 	rightX = -camera->center.z;
 	rightZ = camera->center.x;
 }
@@ -362,12 +363,19 @@ void InitMatrices()
 	// 	// camera.center,
 	// 	camera.up
 	// );
+	//
+	// #TODO: DOES THIS EVEN MATTER THAT MUCH? DO WE EVEN NEED TO SET THIS?
+	//
+	// view = glm::lookAt(
+	// 	camera->eye,
+	// 	camera->center,
+	// 	camera->up
+	// );
+	//
+	//
 
-	view = glm::lookAt(
-		camera->eye,
-		glm::vec3(1.5, 0.5, 0.0),
-		camera->up
-	);
+	InitCameras();
+
 
     projection = glm::perspective(
         glm::radians(45.0f),
@@ -548,7 +556,7 @@ void InitObjects()
 
 	// TEAPOT
 	glm::mat4 teapotMatrix = glm::mat4();
-	Material matte = {
+	Material teapotMatrix_m = {
 		glm::vec3(0.3, 0.3, 0.3),
 		glm::vec3(0.5, 0.5, 0.0),
 		glm::vec3(1.0),
@@ -558,11 +566,11 @@ void InitObjects()
 	teapotMatrix = glm::translate(teapotMatrix, glm::vec3(0.6f, 2.8f, 0.0f));
 	float scaleFactor = 3.0f;
 	teapotMatrix = glm::scale(teapotMatrix, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
-	models.emplace_back("objects/teapot.obj", "textures/XOndergrond.bmp", matte, teapotMatrix);
+	models.emplace_back("objects/teapot.obj", "textures/XOndergrond.bmp", teapotMatrix_m, teapotMatrix);
 
 	// FLOOR
 	glm::mat4 floorMatrix = glm::mat4();
-	Material floor = {
+	Material floorMatrix_m = {
 		glm::vec3(0.3, 0.3, 0.0),
 		glm::vec3(0.5, 0.5, 0.0),
 		glm::vec3(1.0),
@@ -571,14 +579,29 @@ void InitObjects()
 	};
 	floorMatrix = glm::translate(floorMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
 	floorMatrix = glm::scale(floorMatrix, glm::vec3(100.0f, 1.0f, 100.0f));
-	models.emplace_back("objects/box.obj", "textures/Yellobrk.bmp", floor, floorMatrix);
+	models.emplace_back("objects/box.obj", "textures/Yellobrk.bmp", floorMatrix_m, floorMatrix);
+
+
+	// BRAND_GATE
+	glm::mat4 brand_gate = glm::mat4();
+	Material brand_gate_m = {
+		glm::vec3(0.3, 0.3, 0.3),
+		glm::vec3(0.5, 0.5, 0.0),
+		glm::vec3(1.0),
+		128,
+		true
+	};
+	brand_gate = glm::translate(brand_gate, glm::vec3(0.0f, 0.0f, 10.0f));
+	// brand_gate = glm::scale(floorMatrix, glm::vec3(100.0f, 1.0f, 100.0f));
+	// models.emplace_back("objects/tower_house_design/Tower-House Design.obj", "textures/Yellobrk.bmp", brand_gate_m, brand_gate);
+	models.emplace_back("objects/tower_house_design/Tower-House Design.obj", "objects/tower_house_design/textures/AussenWand_C.bmp", brand_gate_m, brand_gate);
+	
 }
 
 int main(int argc, char ** argv)
 {
     InitGlutGlew(argc, argv);
     InitShaders();
-	InitCameras(); // Init cameras
 	InitObjects();
 	InitMatrices();
     InitBuffers();
