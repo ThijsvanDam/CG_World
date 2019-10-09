@@ -256,9 +256,14 @@ void Render()
 	for (int i = 0; i < models.size(); ++i)
 	{
 
-		if( i == 0)
+		if (i == 0)
 			models[i].model = glm::rotate(models[i].model, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
-		
+		// if(i==0 || i==1 || i==2)
+		// {
+		// 	models[i].model = glm::translate(models[i].model, glm::vec3(0.0f, 0.0f, 0.1f));
+		// }
+		//
+	
 		models[i].mv = view * models[i].model;
 
 		// if(models[i].material.applied)
@@ -589,13 +594,66 @@ void InitObjects()
 		glm::vec3(0.5, 0.5, 0.0),
 		glm::vec3(1.0),
 		128,
-		true
+		false
 	};
 	brand_gate = glm::translate(brand_gate, glm::vec3(0.0f, 0.0f, 10.0f));
 	// brand_gate = glm::scale(floorMatrix, glm::vec3(100.0f, 1.0f, 100.0f));
 	// models.emplace_back("objects/tower_house_design/Tower-House Design.obj", "textures/Yellobrk.bmp", brand_gate_m, brand_gate);
-	models.emplace_back("objects/tower_house_design/Tower-House Design.obj", "objects/tower_house_design/textures/AussenWand_C.bmp", brand_gate_m, brand_gate);
+	models.emplace_back("objects/tower_house_design/Tower-House Design.obj", "textures/XOndergrond.bmp", brand_gate_m, brand_gate);
+
+	// // HIGHWAY
+	glm::mat4 plane = glm::mat4();
+	Material plane_m = {
+		glm::vec3(0.3, 0.3, 0.3),
+		glm::vec3(0.5, 0.5, 0.0),
+		glm::vec3(1.0),
+		128,
+		false
+	};
+	plane = glm::translate(plane, glm::vec3(0.0f, 0.1f, 0.0f));
+	plane = glm::rotate(plane, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	plane = glm::scale(plane, glm::vec3(1.0f, 1.0f, 10.0f));
+	models.emplace_back("objects/plane.obj", "textures/highway.bmp", plane_m, plane);
 	
+	// STREET_LAMPS
+	#pragma region STREET_LAMPS
+	glm::mat4 lamp_starting_point = glm::mat4();
+	lamp_starting_point = glm::translate(lamp_starting_point, glm::vec3(-30.0f, 0.0f, 0.0f));
+	glm::mat4 street_lamp = lamp_starting_point;
+	Material street_lamp_m = {
+		glm::vec3(0.3, 0.3, 0.3),
+		glm::vec3(0.5, 0.5, 0.0),
+		glm::vec3(1.0),
+		256,
+		false
+	};
+	float sf = 100.0f;
+	// street_lamp = glm::translate(street_lamp, glm::vec3(0.0f, 0.0f, -1000.0f));
+
+	street_lamp = glm::rotate(street_lamp, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	int lamp_count = 6;
+
+	street_lamp = glm::scale(street_lamp, glm::vec3(sf, sf, sf));
+	for (float i = 0; i < lamp_count; i++)
+	{
+
+		street_lamp = glm::translate(street_lamp, glm::vec3(0.05, 0.0f, 0.0f));
+		models.emplace_back("objects/obj_pack/svet/svet_11.obj", "textures/XOndergrond.bmp", street_lamp_m, street_lamp);
+	}
+
+	street_lamp = lamp_starting_point;
+	street_lamp = glm::rotate(street_lamp, glm::radians(-180.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	street_lamp = glm::rotate(street_lamp, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+	street_lamp = glm::translate(street_lamp, glm::vec3(-5.0f + (lamp_count * -5), 30.0f, 0.0f));
+	street_lamp = glm::scale(street_lamp, glm::vec3(sf, sf, sf));
+	
+	for (float i = 0; i < lamp_count; i++)
+	{
+
+		street_lamp = glm::translate(street_lamp, glm::vec3(0.05, 0.0f, 0.0f));
+		models.emplace_back("objects/obj_pack/svet/svet_11.obj", "textures/XOndergrond.bmp", street_lamp_m, street_lamp);
+	}
+	#pragma endregion
 }
 
 int main(int argc, char ** argv)

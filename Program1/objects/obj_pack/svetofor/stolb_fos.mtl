@@ -1,0 +1,13 @@
+# 
+# Wavefront material file
+# Converted by the DEEP Exploration  SAP Visual Enterprise Author 7.1 7.1.10.1
+# Right Hemisphere, LTD
+# http://www.righthemisphere.com/
+# 
+
+newmtl __________1
+Ka 0.647059 0.619608 0.588235
+Kd 0.647059 0.619608 0.588235
+Ks 0.517647 0.495686 0.470588
+illum 2
+Ns 12.8

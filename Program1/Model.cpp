@@ -10,7 +10,7 @@
 
 using namespace std;
 
-Model::Model(const char* objectPath, const char* texturePath, Material i_material, glm::mat4 modelMatrix){
+Model::Model(const char* objectPath, const char* texturePath, Material i_material, glm::mat4 modelMatrix) {
 	// position, rotation and scale for this object;
 	model = modelMatrix;
 
