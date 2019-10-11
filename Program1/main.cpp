@@ -588,18 +588,19 @@ void InitObjects()
 
 
 	// BRAND_GATE
-	glm::mat4 brand_gate = glm::mat4();
-	Material brand_gate_m = {
+	glm::mat4 peperbus = glm::mat4();
+	Material peperbus_m = {
 		glm::vec3(0.3, 0.3, 0.3),
 		glm::vec3(0.5, 0.5, 0.0),
 		glm::vec3(1.0),
 		128,
 		false
 	};
-	brand_gate = glm::translate(brand_gate, glm::vec3(0.0f, 0.0f, 10.0f));
-	// brand_gate = glm::scale(floorMatrix, glm::vec3(100.0f, 1.0f, 100.0f));
+	float peperbus_s = 0.0001f;
+	peperbus = glm::translate(peperbus, glm::vec3(0.0f, 10.8f, 0.0f));
+	peperbus = glm::scale(floorMatrix, glm::vec3(peperbus_s, peperbus_s, peperbus_s));
 	// models.emplace_back("objects/tower_house_design/Tower-House Design.obj", "textures/Yellobrk.bmp", brand_gate_m, brand_gate);
-	models.emplace_back("objects/tower_house_design/Tower-House Design.obj", "textures/XOndergrond.bmp", brand_gate_m, brand_gate);
+	models.emplace_back("objects/peperbus/peperbus.obj", "textures/XOndergrond.bmp", peperbus_m, peperbus);
 
 	// // HIGHWAY
 	glm::mat4 plane = glm::mat4();
@@ -613,7 +614,7 @@ void InitObjects()
 	plane = glm::translate(plane, glm::vec3(0.0f, 0.1f, 0.0f));
 	plane = glm::rotate(plane, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	plane = glm::scale(plane, glm::vec3(1.0f, 1.0f, 10.0f));
-	models.emplace_back("objects/plane.obj", "textures/highway.bmp", plane_m, plane);
+	models.emplace_back("objects/plane/plane.obj", "objects/plane/Material_2.bmp", plane_m, plane);
 	
 	// STREET_LAMPS
 	#pragma region STREET_LAMPS
