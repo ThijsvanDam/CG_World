@@ -583,7 +583,7 @@ void InitObjects()
 		true
 	};
 	floorMatrix = glm::translate(floorMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
-	floorMatrix = glm::scale(floorMatrix, glm::vec3(100.0f, 1.0f, 100.0f));
+	floorMatrix = glm::scale(floorMatrix, glm::vec3(200.0f, 1.0f, 200.0f));
 	models.emplace_back("objects/box.obj", "textures/grass.bmp", floorMatrix_m, floorMatrix);
 
 	// CREATED_MODEL_FLAT
@@ -635,6 +635,20 @@ void InitObjects()
 		models.emplace_back("objects/plane/plane.obj", "objects/plane/Material_2.bmp", plane_m, plane);
 	}
 
+	// LAKE
+	glm::mat4 lake = glm::mat4();
+	Material lake_m = {
+		glm::vec3(0.3, 0.3, 0.3),
+		glm::vec3(0.5, 0.5, 0.0),
+		glm::vec3(10.0),
+		128,
+		false
+	};
+	lake = glm::translate(lake, glm::vec3(-30.0f, -65.5667f, 90.0f));
+	lake = glm::scale(lake, glm::vec3(0.03, 10.1f, 0.03));
+	models.emplace_back("objects/lake/lake.obj", "textures/lake.bmp", lake_m, lake);
+
+	
 	int lamp_count =14;
 	// STREET_LAMPS
 	#pragma region STREET_LAMPS
