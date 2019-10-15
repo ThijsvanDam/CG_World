@@ -78,10 +78,10 @@ GLuint uniform_material_diffuse;
 GLuint uniform_material_specular;
 GLuint uniform_material_power;
 
-glm::mat4 model, view, projection;
+glm::mat4 view, projection;
 glm::mat4 mvp;
 
-CameraMode cameraMode = CameraMode::View;
+CameraMode cameraMode = CameraMode::Walk;
 Camera* camera;
 LightSource light;
 vector<Model> models;
@@ -192,16 +192,15 @@ void calculateCameraCenter(float cameraCenterDeltaX, float cameraCenterDeltaY) {
 void InitCameras() {
 
 	// View camera definition, this one is static!
-	glm::vec3  viewCameraPosition = { 20.0f, 20.0f, 80.0f };
-	glm::vec3 viewCameraAngle = { 0.0f, -1.0f, -0.0f };
-	cameras[int(CameraMode::View)] = { viewCameraPosition, viewCameraAngle };
+	glm::vec3 viewCameraEye = { 94.0f, 40.0f, 0.0f };
+	glm::vec3 viewCameraCenter = { -30.0f, 10.0f, 0.0f };
+	cameras[int(CameraMode::View)] = { viewCameraEye, viewCameraCenter };
 
 	// Walk camera definition, this one is dynamic!
-	glm::vec3 walkCameraPosition = { 0.0f, 2.0f, 6.0f };
-	glm::vec3 walkCameraAngle = { 0.0f, -1.0f, 0.0f };
-	cameras[int(CameraMode::Walk)] = { walkCameraPosition, walkCameraAngle };
+	glm::vec3 walkCameraEye = { 0.0f, 3.5f, 6.0f };
+	glm::vec3 walkCameraCenter = { 0.0f, -1.0f, 0.0f };
+	cameras[int(CameraMode::Walk)] = { walkCameraEye, walkCameraCenter };
 
-	
 	camera = &cameras[int(cameraMode)];
 
 
@@ -209,13 +208,20 @@ void InitCameras() {
 	rightX= camera->center.x;
 }
 
+void printCamera(Camera camera)
+{
+	cout << "Center: [" << camera.center.x << ", " << camera.center.y << ", " << camera.center.z << "], Eye: [" << camera.eye.x << ", " << camera.eye.y << ", " << camera.eye.z << "]" << endl;
+}
+
 void switchCameraMode()
 {
 	cameraMode = bool(cameraMode) ? CameraMode::View : CameraMode::Walk;
 	const string cCstring = bool(cameraMode) ? "view" : "walk";
 	cout << "Switch camera to [" << cCstring << "] mode." << endl;
+	
 	camera = &cameras[int(cameraMode)];
-} 
+	printCamera(*camera);
+}
 
 
 
@@ -244,6 +250,7 @@ void Render()
 		glm::vec3(camera->eye.x + camera->center.x, camera->center.y, camera->eye.z + camera->center.z),
 		camera->up
 	);
+	printCamera(*camera);
 
 	glClearColor(1.0, 1.0, 1.0, 1.0);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -371,22 +378,23 @@ void InitMatrices()
 	//
 	// #TODO: DOES THIS EVEN MATTER THAT MUCH? DO WE EVEN NEED TO SET THIS?
 	//
-	// view = glm::lookAt(
-	// 	camera->eye,
-	// 	camera->center,
-	// 	camera->up
-	// );
 	//
 	//
 
 	InitCameras();
 
 
+	view = glm::lookAt( // #TODO: Zet deze naar iets leuks
+		glm::vec3(0.0, 2.0, 6.0),
+		glm::vec3(1.5, 0.5, 0.0),
+		glm::vec3(0.0, 1.0, 0.0)
+	);
     projection = glm::perspective(
         glm::radians(45.0f),
         1.0f * WIDTH / HEIGHT, 0.1f,
-        400.0f);
+        4000.0f);
 
+	
 	for (int i = 0; i < models.size(); i++)
 	{
 		models[i].mv = view * models[i].model;
