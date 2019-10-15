@@ -165,7 +165,8 @@ void mouseHandler(int x, int y)
 //--------------------------------------------------------------------------------
 void calculateCameraEye(float cameraEyeDeltaX, float cameraEyeDeltaZ) {
 	float walkingSpeed = 0.1f;
-	camera->eye.x += (cameraEyeDeltaZ * camera->center.x * walkingSpeed) + (cameraEyeDeltaX * rightX * walkingSpeed);
+	camera->eye.x += (cameraEyeDeltaZ * camera->center.x * walkingSpeed) + 
+		(cameraEyeDeltaX * rightX * walkingSpeed);
 	camera->eye.z += (cameraEyeDeltaZ * camera->center.z * walkingSpeed) + (cameraEyeDeltaX * rightZ * walkingSpeed);
 }
 
