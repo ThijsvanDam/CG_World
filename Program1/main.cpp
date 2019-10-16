@@ -81,7 +81,7 @@ GLuint uniform_material_power;
 glm::mat4 view, projection;
 glm::mat4 mvp;
 
-CameraMode cameraMode = CameraMode::Walk;
+CameraMode cameraMode = CameraMode::View;
 Camera* camera;
 LightSource light;
 vector<Model> models;
@@ -193,8 +193,8 @@ void calculateCameraCenter(float cameraCenterDeltaX, float cameraCenterDeltaY) {
 void InitCameras() {
 
 	// View camera definition, this one is static!
-	glm::vec3 viewCameraEye = { 94.0f, 40.0f, 0.0f };
-	glm::vec3 viewCameraCenter = { -30.0f, 10.0f, 0.0f };
+	glm::vec3 viewCameraEye = { 81.0f, 25.0f, 40.0f };
+	glm::vec3 viewCameraCenter = { -90.0f, 5.0f, -40.0f };
 	cameras[int(CameraMode::View)] = { viewCameraEye, viewCameraCenter };
 
 	// Walk camera definition, this one is dynamic!
@@ -626,43 +626,51 @@ void InitObjects()
 	// // models.emplace_back("objects/tower_house_design/Tower-House Design.obj", "textures/Yellobrk.bmp", brand_gate_m, brand_gate);
 	// // models.emplace_back("objects/peperbus/peperbus.obj", "textures/XOndergrond.bmp", peperbus_m, peperbus);
 
-	// // HIGHWAY
-	glm::mat4 plane = glm::mat4();
-	Material plane_m = {
-		glm::vec3(0.3, 0.3, 0.3),
-		glm::vec3(0.5, 0.5, 0.0),
-		glm::vec3(1.0),
-		128,
-		false
-	};
-	plane = glm::translate(plane, glm::vec3(-30.0f, 0.1f, 29.5f));
-	plane = glm::rotate(plane, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	plane = glm::scale(plane, glm::vec3(2.4f, 1.0f, 2.4f));
-	for (int i = 0; i < 8; ++i)
-	{
-		plane = glm::translate(plane, glm::vec3(0.0f, 0.0f, 3.75f)); 
-		models.emplace_back("objects/plane/plane.obj", "objects/plane/Material_2.bmp", plane_m, plane);
-	}
 
 	// LAKE
 	glm::mat4 lake = glm::mat4();
 	Material lake_m = {
-		glm::vec3(0.3, 0.3, 0.3),
-		glm::vec3(0.5, 0.5, 0.0),
-		glm::vec3(10.0),
-		128,
+		glm::vec3(0.0, 0.0, 0.0),
+		glm::vec3(0.0, 0.0, 0.0),
+		glm::vec3(0.0),
+		0,
 		false
 	};
 	lake = glm::translate(lake, glm::vec3(-30.0f, -65.5667f, 90.0f));
 	lake = glm::scale(lake, glm::vec3(0.03, 10.1f, 0.03));
 	models.emplace_back("objects/lake/lake.obj", "textures/lake.bmp", lake_m, lake);
 
+
+	glm::mat4 skybox = glm::mat4();
+
+	Material skybox_m = {
+		glm::vec3(0.3, 0.3, 0.3),
+		glm::vec3(0.5, 0.5, 0.0),
+		glm::vec3(10.0),
+		128,
+		false
+	};
+	skybox = glm::translate(skybox, glm::vec3(0.0f,50.0f, 0.0f));
+	skybox = glm::scale(skybox, glm::vec3(1.5f,1.5f, 1.5f));
+	models.emplace_back("objects/skybox.obj", "textures/skybox_3.bmp",skybox_m , skybox);
+
+
+	#pragma region Lamps_and_highway
+	glm::mat4 lamp_and_planes_starting_point = glm::mat4();
+	lamp_and_planes_starting_point = glm::translate(lamp_and_planes_starting_point, glm::vec3(-69.0f, 0.0f, 0.0f));
+
+	int cnt = 22;
 	
-	int lamp_count =14;
+	int lamp_count = 1.75 * cnt;
+	glm::mat4 lamp_starting_point = lamp_and_planes_starting_point;
+	lamp_starting_point = glm::translate(lamp_starting_point, glm::vec3(-30.0f, 0.0f, 0.0f));
+
+	int plane_count = cnt;
+	glm::mat4 plane_starting_point = lamp_and_planes_starting_point;
+
+	
 	// STREET_LAMPS
 	#pragma region STREET_LAMPS
-	glm::mat4 lamp_starting_point = glm::mat4();
-	lamp_starting_point = glm::translate(lamp_starting_point, glm::vec3(-30.0f, 0.0f, 0.0f));
 	glm::mat4 street_lamp = lamp_starting_point;
 	Material street_lamp_m = {
 		glm::vec3(0.3, 0.3, 0.3),
@@ -677,7 +685,7 @@ void InitObjects()
 	street_lamp = glm::rotate(street_lamp, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
 	street_lamp = glm::scale(street_lamp, glm::vec3(sf, sf, sf));
-	for (float i = 0; i < lamp_count; i++)
+	for (float i = 0; i < lamp_count; i+=2)
 	{
 
 		street_lamp = glm::translate(street_lamp, glm::vec3(0.05, 0.0f, 0.0f));
@@ -696,6 +704,28 @@ void InitObjects()
 		street_lamp = glm::translate(street_lamp, glm::vec3(0.05, 0.0f, 0.0f));
 		models.emplace_back("objects/obj_pack/svet/svet_11.obj", "textures/XOndergrond.bmp", street_lamp_m, street_lamp);
 	}
+	#pragma endregion
+
+
+	// // HIGHWAY
+	#pragma region HIGHWAY
+	glm::mat4 plane = plane_starting_point;
+	Material plane_m = {
+		glm::vec3(0.3, 0.3, 0.3),
+		glm::vec3(0.5, 0.5, 0.0),
+		glm::vec3(1.0),
+		128,
+		false
+	};
+	plane = glm::translate(plane, glm::vec3(-30.0f, 0.1f, 29.5f));
+	plane = glm::rotate(plane, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	plane = glm::scale(plane, glm::vec3(2.4f, 1.0f, 2.4f));
+	for (int i = 0; i < plane_count; ++i)
+	{
+		plane = glm::translate(plane, glm::vec3(0.0f, 0.0f, 3.75f));
+		models.emplace_back("objects/plane/plane.obj", "objects/plane/Material_2.bmp", plane_m, plane);
+	}
+	#pragma endregion
 	#pragma endregion
 }
 
