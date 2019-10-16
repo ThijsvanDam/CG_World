@@ -650,9 +650,9 @@ void InitObjects()
 		128,
 		false
 	};
-	skybox = glm::translate(skybox, glm::vec3(0.0f,50.0f, 0.0f));
+	skybox = glm::translate(skybox, glm::vec3(0.0f,-30.0f, 0.0f));
 	skybox = glm::scale(skybox, glm::vec3(1.5f,1.5f, 1.5f));
-	models.emplace_back("objects/skybox.obj", "textures/skybox_3.bmp",skybox_m , skybox);
+	models.emplace_back("objects/skybox.obj", "textures/skybox_4.bmp",skybox_m , skybox);
 
 
 	#pragma region Lamps_and_highway
