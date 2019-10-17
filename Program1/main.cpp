@@ -583,10 +583,10 @@ void InitObjects()
 
 	// CREATED_MODEL_FLAT
 	glm::mat4 flat = glm::mat4();
-	flat = glm::rotate(flat, glm::radians(180.0f), glm::vec3(0.0f ,1.0f, 0.0f));
+	flat = glm::rotate(flat, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	flat = glm::translate(flat, glm::vec3(-5.0f, 0.1f, 25.0f));
-	flat = glm::scale(flat, glm::vec3(30.0f, 30.0f, 30.0f));
-	models.emplace_back("objects/sketchup_house.obj", "textures/Yellobrk.bmp", matte, flat);
+	// flat = glm::scale(flat, glm::vec3(.03f, .03f, .0f));
+	models.emplace_back("objects/Uv-mapped-3ds-house-v2.obj", "textures/Uv-template-3ds-house.bmp", matte, flat);
 
 	// LAKE
 	glm::mat4 lake = glm::mat4();
