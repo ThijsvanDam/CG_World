@@ -273,14 +273,9 @@ void Render()
 		//
 	
 		models[i].mv = view * models[i].model;
-
-		// if(models[i].material.applied)
-		// {
-			glUniform1i(uniform_apply_texture, 1);
-			glBindTexture(GL_TEXTURE_2D, models[i].textureID);
-		// }
-		// else
-			// glUniform1i(uniform_apply_texture, 0);
+		
+		glUniform1i(uniform_apply_texture, models[i].material.materialId);
+		glBindTexture(GL_TEXTURE_2D, models[i].textureID);
 
 		glUniformMatrix4fv(uniform_mv, 1, GL_FALSE, glm::value_ptr(models[i].mv));
 		glUniform3fv(uniform_material_ambient, 1, glm::value_ptr(models[i].material.ambientColor));
@@ -568,91 +563,58 @@ void InitObjects()
 	light.position = glm::vec3(4.0, 4.0, 4.0);
 
 
+
+	// o Some basic geometries are already present on ELO: box.obj, cylinder18.obj, cylinder32.obj, sphere.obj, torus.obj
+	//	- Besides the already present.obj - files, use at least
+
+	Material shiny = {
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(1.0f, 1.0f, 1.0f),
+		glm::vec3(10.0f),
+		128,
+		1
+	};
+
+	Material matte = {
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		// glm::vec3(-0.3f, -0.3f, -0.3f),
+		glm::vec3(0.1f, 0.1f, 0.1f),
+		glm::vec3(0.0),
+		128,
+		0
+	};
+
 	// TEAPOT
 	glm::mat4 teapotMatrix = glm::mat4();
-	Material teapotMatrix_m = {
-		glm::vec3(0.3, 0.3, 0.3),
-		glm::vec3(0.5, 0.5, 0.0),
-		glm::vec3(1.0),
-		256,
-		false
-	};
 	teapotMatrix = glm::translate(teapotMatrix, glm::vec3(0.6f, 2.8f, 0.0f));
 	float scaleFactor = 3.0f;
 	teapotMatrix = glm::scale(teapotMatrix, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
-	models.emplace_back("objects/teapot.obj", "textures/XOndergrond.bmp", teapotMatrix_m, teapotMatrix);
+	models.emplace_back("objects/teapot.obj", "textures/XOndergrond.bmp", shiny, teapotMatrix);
 
 	// FLOOR
 	glm::mat4 floorMatrix = glm::mat4();
-	Material floorMatrix_m = {
-		glm::vec3(0.3, 0.3, 0.0),
-		glm::vec3(0.5, 0.5, 0.0),
-		glm::vec3(1.0),
-		128,
-		true
-	};
 	floorMatrix = glm::translate(floorMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
 	floorMatrix = glm::scale(floorMatrix, glm::vec3(200.0f, 1.0f, 200.0f));
-	models.emplace_back("objects/box.obj", "textures/grass.bmp", floorMatrix_m, floorMatrix);
+	models.emplace_back("objects/box.obj", "textures/grass.bmp", matte, floorMatrix);
 
 	// CREATED_MODEL_FLAT
 	glm::mat4 flat = glm::mat4();
-	Material flat_m = {
-		glm::vec3(0.0, 0.0, 0.0),
-		glm::vec3(0.0, 0.0, 0.0),
-		glm::vec3(0.0),
-		128,
-		true
-	};
 	flat = glm::rotate(flat, glm::radians(180.0f), glm::vec3(0.0f ,1.0f, 0.0f));
 	flat = glm::translate(flat, glm::vec3(-5.0f, 0.0f, 25.0f));
 	flat = glm::scale(flat, glm::vec3(30.0f, 30.0f, 30.0f));
-	models.emplace_back("objects/sketchup_house/sketchup_house.obj", "textures/Yellobrk.bmp", flat_m, flat);
-
-	
-	//
-	// // BRAND_GATE
-	// glm::mat4 peperbus = glm::mat4();
-	// Material peperbus_m = {
-	// 	glm::vec3(0.3, 0.3, 0.3),
-	// 	glm::vec3(0.5, 0.5, 0.0),
-	// 	glm::vec3(1.0),
-	// 	128,
-	// 	false
-	// };
-	// float peperbus_s = 0.0001f;
-	// peperbus = glm::translate(peperbus, glm::vec3(0.0f, 10.8f, 0.0f));
-	// peperbus = glm::scale(floorMatrix, glm::vec3(peperbus_s, peperbus_s, peperbus_s));
-	// // models.emplace_back("objects/tower_house_design/Tower-House Design.obj", "textures/Yellobrk.bmp", brand_gate_m, brand_gate);
-	// // models.emplace_back("objects/peperbus/peperbus.obj", "textures/XOndergrond.bmp", peperbus_m, peperbus);
-
+	models.emplace_back("objects/sketchup_house/sketchup_house.obj", "textures/Yellobrk.bmp", matte, flat);
 
 	// LAKE
 	glm::mat4 lake = glm::mat4();
-	Material lake_m = {
-		glm::vec3(0.0, 0.0, 0.0),
-		glm::vec3(0.0, 0.0, 0.0),
-		glm::vec3(0.0),
-		0,
-		false
-	};
-	lake = glm::translate(lake, glm::vec3(-30.0f, -65.5667f, 90.0f));
+	lake = glm::translate(lake, glm::vec3(-30.0f, -65.4667f, 90.0f));
 	lake = glm::scale(lake, glm::vec3(0.03, 10.1f, 0.03));
-	models.emplace_back("objects/lake/lake.obj", "textures/lake.bmp", lake_m, lake);
+	models.emplace_back("objects/lake/lake.obj", "textures/lake.bmp", shiny, lake);
 
 
 	glm::mat4 skybox = glm::mat4();
-
-	Material skybox_m = {
-		glm::vec3(0.3, 0.3, 0.3),
-		glm::vec3(0.5, 0.5, 0.0),
-		glm::vec3(10.0),
-		128,
-		false
-	};
 	skybox = glm::translate(skybox, glm::vec3(0.0f,-30.0f, 0.0f));
 	skybox = glm::scale(skybox, glm::vec3(1.5f,1.5f, 1.5f));
-	models.emplace_back("objects/skybox.obj", "textures/skybox_4.bmp",skybox_m , skybox);
+	models.emplace_back("objects/skybox.obj", "textures/skybox_4.bmp", matte , skybox);
 
 
 	#pragma region Lamps_and_highway
@@ -672,13 +634,6 @@ void InitObjects()
 	// STREET_LAMPS
 	#pragma region STREET_LAMPS
 	glm::mat4 street_lamp = lamp_starting_point;
-	Material street_lamp_m = {
-		glm::vec3(0.3, 0.3, 0.3),
-		glm::vec3(0.5, 0.5, 0.0),
-		glm::vec3(1.0),
-		256,
-		false
-	};
 	float sf = 100.0f;
 	// street_lamp = glm::translate(street_lamp, glm::vec3(0.0f, 0.0f, -1000.0f));
 
@@ -688,8 +643,8 @@ void InitObjects()
 	for (float i = 0; i < lamp_count; i+=2)
 	{
 
-		street_lamp = glm::translate(street_lamp, glm::vec3(0.05, 0.0f, 0.0f));
-		models.emplace_back("objects/obj_pack/svet/svet_11.obj", "textures/XOndergrond.bmp", street_lamp_m, street_lamp);
+		street_lamp = glm::translate(street_lamp, glm::vec3(0.05 * 2, 0.0f, 0.0f));
+		models.emplace_back("objects/obj_pack/svet/svet_11.obj", "textures/XOndergrond.bmp", shiny, street_lamp);
 	}
 
 	street_lamp = lamp_starting_point;
@@ -698,32 +653,24 @@ void InitObjects()
 	street_lamp = glm::translate(street_lamp, glm::vec3(-5.0f + (lamp_count * -5), 30.0f, 0.0f));
 	street_lamp = glm::scale(street_lamp, glm::vec3(sf, sf, sf));
 	
-	for (float i = 0; i < lamp_count; i++)
+	for (float i = 0; i < lamp_count; i+= 2)
 	{
 
-		street_lamp = glm::translate(street_lamp, glm::vec3(0.05, 0.0f, 0.0f));
-		models.emplace_back("objects/obj_pack/svet/svet_11.obj", "textures/XOndergrond.bmp", street_lamp_m, street_lamp);
+		street_lamp = glm::translate(street_lamp, glm::vec3(0.05 * 2, 0.0f, 0.0f));
+		models.emplace_back("objects/obj_pack/svet/svet_11.obj", "textures/XOndergrond.bmp", shiny, street_lamp);
 	}
 	#pragma endregion
-
 
 	// // HIGHWAY
 	#pragma region HIGHWAY
 	glm::mat4 plane = plane_starting_point;
-	Material plane_m = {
-		glm::vec3(0.3, 0.3, 0.3),
-		glm::vec3(0.5, 0.5, 0.0),
-		glm::vec3(1.0),
-		128,
-		false
-	};
 	plane = glm::translate(plane, glm::vec3(-30.0f, 0.1f, 29.5f));
 	plane = glm::rotate(plane, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	plane = glm::scale(plane, glm::vec3(2.4f, 1.0f, 2.4f));
 	for (int i = 0; i < plane_count; ++i)
 	{
 		plane = glm::translate(plane, glm::vec3(0.0f, 0.0f, 3.75f));
-		models.emplace_back("objects/plane/plane.obj", "objects/plane/Material_2.bmp", plane_m, plane);
+		models.emplace_back("objects/plane/plane.obj", "objects/plane/Material_2.bmp", matte, plane);
 	}
 	#pragma endregion
 	#pragma endregion

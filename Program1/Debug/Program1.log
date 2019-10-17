@@ -1,6 +1,6 @@
 ﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(452,5): warning MSB8028: The intermediate directory (Debug\) contains files shared from another project (Program1.vcxproj).  This can lead to incorrect clean and rebuild behavior.
   main.cpp
 C:\Users\Thijs-PC\Source\Repos\CG_World\Program1\main.cpp(264,20): warning C4018:  '<': signed/unsigned mismatch
-C:\Users\Thijs-PC\Source\Repos\CG_World\Program1\main.cpp(399,20): warning C4018:  '<': signed/unsigned mismatch
-C:\Users\Thijs-PC\Source\Repos\CG_World\Program1\main.cpp(664,17): warning C4244:  'initializing': conversion from 'double' to 'int', possible loss of data
+C:\Users\Thijs-PC\Source\Repos\CG_World\Program1\main.cpp(394,20): warning C4018:  '<': signed/unsigned mismatch
+C:\Users\Thijs-PC\Source\Repos\CG_World\Program1\main.cpp(626,17): warning C4244:  'initializing': conversion from 'double' to 'int', possible loss of data
   Program1.vcxproj -> C:\Users\Thijs-PC\Source\Repos\CG_World\Debug\ProjectProgram.exe

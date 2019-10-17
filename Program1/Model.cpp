@@ -16,7 +16,7 @@ Model::Model(const char* objectPath, const char* texturePath, Material i_materia
 
 	// init material
 	textureID = loadBMP(texturePath);
-	material = std::move(i_material);
+	material = i_material;
 
 	// init object
 	loadOBJ(objectPath, vertices, uvs, normals);
