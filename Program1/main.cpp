@@ -19,6 +19,10 @@
 
 using namespace std;
 
+// 1. Nog een bewegend dinkie
+// 2. De theepot fixen/een ander object
+// 3. Camera begin
+
 //--------------------------------------------------------------------------------
 // Consts
 //--------------------------------------------------------------------------------
@@ -81,7 +85,7 @@ GLuint uniform_material_power;
 glm::mat4 view, projection;
 glm::mat4 mvp;
 
-CameraMode cameraMode = CameraMode::View;
+CameraMode cameraMode = CameraMode::Walk;
 Camera* camera;
 LightSource light;
 vector<Model> models;
@@ -165,8 +169,8 @@ void mouseHandler(int x, int y)
 //--------------------------------------------------------------------------------
 void calculateCameraEye(float cameraEyeDeltaX, float cameraEyeDeltaZ) {
 	float walkingSpeed = 0.1f;
-	camera->eye.x += (cameraEyeDeltaZ * camera->center.x * walkingSpeed) + 
-		(cameraEyeDeltaX * rightX * walkingSpeed);
+	camera->eye.x += (cameraEyeDeltaZ * camera->center.x * walkingSpeed) + (cameraEyeDeltaX * rightX * walkingSpeed);
+
 	camera->eye.z += (cameraEyeDeltaZ * camera->center.z * walkingSpeed) + (cameraEyeDeltaX * rightZ * walkingSpeed);
 }
 
@@ -193,8 +197,8 @@ void calculateCameraCenter(float cameraCenterDeltaX, float cameraCenterDeltaY) {
 void InitCameras() {
 
 	// View camera definition, this one is static!
-	glm::vec3 viewCameraEye = { 81.0f, 25.0f, 40.0f };
-	glm::vec3 viewCameraCenter = { -90.0f, 5.0f, -40.0f };
+	glm::vec3 viewCameraEye = { 40.0f, 25.0f, 40.0f };
+	glm::vec3 viewCameraCenter = { -40.0f, -25.0f, -40.0f };
 	cameras[int(CameraMode::View)] = { viewCameraEye, viewCameraCenter };
 
 	// Walk camera definition, this one is dynamic!
@@ -247,8 +251,7 @@ void Render()
 	// Set the camera
 	view = glm::lookAt(
 		camera->eye,
-		// camera.center,
-		glm::vec3(camera->eye.x + camera->center.x, camera->center.y, camera->eye.z + camera->center.z),
+		camera->eye + camera->center,
 		camera->up
 	);
 	printCamera(*camera);
@@ -316,7 +319,7 @@ void InitGlutGlew(int argc, char **argv)
 	glutSetOption(GLUT_MULTISAMPLE, 8);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
     glutInitWindowSize(WIDTH, HEIGHT);
-    glutCreateWindow("Hello OpenGL");
+    glutCreateWindow("Thijs van Dam - S1078671");
     glutDisplayFunc(Render);
 
 	// Mouse and keyboard handlers
@@ -357,25 +360,6 @@ void InitShaders()
 
 void InitMatrices()
 {
-    /*
-	models[1].model = glm::translate(glm::mat4(), glm::vec3(40, -2.5, -15));
-	models[1].model = glm::scale(models[1].model, glm::vec3(144, 1, 48));*/
-
-
-	//ignore = glm::translate(ignore, glm::vec3(1000.0f, 0.0f, 0.0f));
-
-	//
-	// view = glm::lookAt(
-	// 	camera.eye,
-	// 	glm::vec3(camera.eye.x + camera.center.x, 1.75f + camera.center.y, camera.eye.z + camera.center.z),
-	// 	// camera.center,
-	// 	camera.up
-	// );
-	//
-	// #TODO: DOES THIS EVEN MATTER THAT MUCH? DO WE EVEN NEED TO SET THIS?
-	//
-	//
-	//
 
 	InitCameras();
 
@@ -600,9 +584,9 @@ void InitObjects()
 	// CREATED_MODEL_FLAT
 	glm::mat4 flat = glm::mat4();
 	flat = glm::rotate(flat, glm::radians(180.0f), glm::vec3(0.0f ,1.0f, 0.0f));
-	flat = glm::translate(flat, glm::vec3(-5.0f, 0.0f, 25.0f));
+	flat = glm::translate(flat, glm::vec3(-5.0f, 0.1f, 25.0f));
 	flat = glm::scale(flat, glm::vec3(30.0f, 30.0f, 30.0f));
-	models.emplace_back("objects/sketchup_house/sketchup_house.obj", "textures/Yellobrk.bmp", matte, flat);
+	models.emplace_back("objects/sketchup_house.obj", "textures/Yellobrk.bmp", matte, flat);
 
 	// LAKE
 	glm::mat4 lake = glm::mat4();
