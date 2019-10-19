@@ -28,8 +28,8 @@ using namespace std;
 //--------------------------------------------------------------------------------
 
 const int WIDTH = 1200, HEIGHT = 800;
-const char * fragshader_name = "fragmentshader.fsh";
-const char * vertexshader_name = "vertexshader.vsh";
+const char* fragshader_name = "fragmentshader.fsh";
+const char* vertexshader_name = "vertexshader.vsh";
 unsigned const int DELTA = 10;
 
 /// These variables will change if the mouse moves
@@ -100,7 +100,7 @@ float rightZ;
 
 void pressKeyHandler(unsigned char key, int a, int b)
 {
-	switch(key)
+	switch (key)
 	{
 	case 27:
 		glutExit();
@@ -111,18 +111,18 @@ void pressKeyHandler(unsigned char key, int a, int b)
 	}
 
 	float lookAroundSpeed = 0.01f;
-	
-	if(cameraMode == CameraMode::Walk)
+
+	if (cameraMode == CameraMode::Walk)
 	{
 		switch (key)
 		{
-		case 'w': cameraEyeDeltaZ =  movementSpeed; break;
+		case 'w': cameraEyeDeltaZ = movementSpeed; break;
 		case 's': cameraEyeDeltaZ = -movementSpeed; break;
-		case 'd': cameraEyeDeltaX =  movementSpeed; break;
+		case 'd': cameraEyeDeltaX = movementSpeed; break;
 		case 'a': cameraEyeDeltaX = -movementSpeed; break;
 		case 'i': cameraCenterDeltaY = -lookAroundSpeed; break;
-		case 'k': cameraCenterDeltaY =  lookAroundSpeed; break;
-		case 'l': cameraCenterDeltaX =  lookAroundSpeed; break;
+		case 'k': cameraCenterDeltaY = lookAroundSpeed; break;
+		case 'l': cameraCenterDeltaX = lookAroundSpeed; break;
 		case 'j': cameraCenterDeltaX = -lookAroundSpeed; break;
 		}
 	}
@@ -132,23 +132,23 @@ void releaseKeyHandler(unsigned char key, int a, int b)
 {
 	switch (key) {
 	case 'w':
-	case 's': cameraEyeDeltaZ = 0.0f; 
+	case 's': cameraEyeDeltaZ = 0.0f;
 		break;
 	case 'd':
-	case 'a': cameraEyeDeltaX = 0.0f; 
+	case 'a': cameraEyeDeltaX = 0.0f;
 		break;
 	case 'i':
-	case 'k': cameraCenterDeltaY = 0.0f; 
+	case 'k': cameraCenterDeltaY = 0.0f;
 		break;
 	case 'l':
-	case 'j': cameraCenterDeltaX = 0.0f; 
+	case 'j': cameraCenterDeltaX = 0.0f;
 		break;
 	}
 }
 
 void mouseHandler(int x, int y)
 {
-	if(cameraMode == CameraMode::Walk)
+	if (cameraMode == CameraMode::Walk)
 	{
 		if (mouseOriginX >= 0)
 		{
@@ -183,11 +183,11 @@ void calculateCameraCenter(float cameraCenterDeltaX, float cameraCenterDeltaY) {
 
 	if (calculatedAngleForCameraCenterY >= 1.57f) calculatedAngleForCameraCenterY = 1.57f;
 	if (calculatedAngleForCameraCenterY <= -1.57f) calculatedAngleForCameraCenterY = -1.57f;
-	
+
 	mouseDeltaX = 0;
 	mouseDeltaY = 0;
 	int a = 5;
-	camera->center.x =  sin(calculatedAngleForCameraCenterX) * a;
+	camera->center.x = sin(calculatedAngleForCameraCenterX) * a;
 	camera->center.y = -sin(calculatedAngleForCameraCenterY) * a;
 	camera->center.z = -cos(calculatedAngleForCameraCenterX) * a;
 	rightX = -camera->center.z;
@@ -209,8 +209,8 @@ void InitCameras() {
 	camera = &cameras[int(cameraMode)];
 
 
-	rightZ= -camera->center.z;
-	rightX= camera->center.x;
+	rightZ = -camera->center.z;
+	rightX = camera->center.x;
 }
 
 void printCamera(Camera camera)
@@ -223,7 +223,7 @@ void switchCameraMode()
 	cameraMode = bool(cameraMode) ? CameraMode::View : CameraMode::Walk;
 	const string cCstring = bool(cameraMode) ? "view" : "walk";
 	cout << "Switch camera to [" << cCstring << "] mode." << endl;
-	
+
 	camera = &cameras[int(cameraMode)];
 	printCamera(*camera);
 }
@@ -247,7 +247,7 @@ void Render()
 	// Reset transformations
 	glLoadIdentity();
 
-	
+
 	// Set the camera
 	view = glm::lookAt(
 		camera->eye,
@@ -262,7 +262,7 @@ void Render()
 	// Send mvp
 	glUseProgram(shader_id);
 
-    // Do transformation
+	// Do transformation
 
 	for (int i = 0; i < models.size(); ++i)
 	{
@@ -274,9 +274,9 @@ void Render()
 		// 	models[i].model = glm::translate(models[i].model, glm::vec3(0.0f, 0.0f, 0.1f));
 		// }
 		//
-	
+
 		models[i].mv = view * models[i].model;
-		
+
 		glUniform1i(uniform_apply_texture, models[i].material.materialId);
 		glBindTexture(GL_TEXTURE_2D, models[i].textureID);
 
@@ -302,8 +302,8 @@ void Render()
 
 void Render(int n)
 {
-    Render();
-    glutTimerFunc(DELTA, Render, 0);
+	Render();
+	glutTimerFunc(DELTA, Render, 0);
 }
 
 
@@ -312,28 +312,28 @@ void Render(int n)
 // Initializes Glut and Glew
 //------------------------------------------------------------
 
-void InitGlutGlew(int argc, char **argv)
+void InitGlutGlew(int argc, char** argv)
 {
-    glutInit(&argc, argv);
+	glutInit(&argc, argv);
 
 	glutSetOption(GLUT_MULTISAMPLE, 8);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
-    glutInitWindowSize(WIDTH, HEIGHT);
-    glutCreateWindow("Thijs van Dam - S1078671");
-    glutDisplayFunc(Render);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA | GLUT_DEPTH);
+	glutInitWindowSize(WIDTH, HEIGHT);
+	glutCreateWindow("Thijs van Dam - S1078671");
+	glutDisplayFunc(Render);
 
 	// Mouse and keyboard handlers
-    glutKeyboardFunc(pressKeyHandler);
+	glutKeyboardFunc(pressKeyHandler);
 	glutPassiveMotionFunc(mouseHandler);
 	glutIgnoreKeyRepeat(1);
 	glutKeyboardUpFunc(releaseKeyHandler);
-    glutTimerFunc(DELTA, Render, 0);
+	glutTimerFunc(DELTA, Render, 0);
 
 	glEnable(GLUT_MULTISAMPLE);
 	glEnable(GL_DEPTH_TEST);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
-    glewInit();
+	glewInit();
 }
 
 
@@ -344,13 +344,13 @@ void InitGlutGlew(int argc, char **argv)
 
 void InitShaders()
 {
-    char * vertexshader = glsl::readFile(vertexshader_name);
-    GLuint vsh_id = glsl::makeVertexShader(vertexshader);
+	char* vertexshader = glsl::readFile(vertexshader_name);
+	GLuint vsh_id = glsl::makeVertexShader(vertexshader);
 
-    char * fragshader = glsl::readFile(fragshader_name);
-    GLuint fsh_id = glsl::makeFragmentShader(fragshader);
+	char* fragshader = glsl::readFile(fragshader_name);
+	GLuint fsh_id = glsl::makeFragmentShader(fragshader);
 
-    shader_id = glsl::makeShaderProgram(vsh_id, fsh_id);
+	shader_id = glsl::makeShaderProgram(vsh_id, fsh_id);
 }
 
 
@@ -369,12 +369,12 @@ void InitMatrices()
 		glm::vec3(1.5, 0.5, 0.0),
 		glm::vec3(0.0, 1.0, 0.0)
 	);
-    projection = glm::perspective(
-        glm::radians(45.0f),
-        1.0f * WIDTH / HEIGHT, 0.1f,
-        4000.0f);
+	projection = glm::perspective(
+		glm::radians(45.0f),
+		1.0f * WIDTH / HEIGHT, 0.1f,
+		4000.0f);
 
-	
+
 	for (int i = 0; i < models.size(); i++)
 	{
 		models[i].mv = view * models[i].model;
@@ -461,25 +461,25 @@ void InitBuffers()
 
 		glGenVertexArrays(1, &(models[i].vao));
 		glBindVertexArray(models[i].vao);
-		
+
 		// Bind vertices to vao
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
 		glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(position_id);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
+
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_normals);
 		glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(normal_id);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
+
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_uvs);
 		glVertexAttribPointer(uv_id, 2, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(uv_id);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		
+
 		glBindVertexArray(0);
-		
+
 	}
 	////**************************** old InitBuffer
 
@@ -549,7 +549,8 @@ void InitObjects()
 
 
 	// o Some basic geometries are already present on ELO: box.obj, cylinder18.obj, cylinder32.obj, sphere.obj, torus.obj
-	//	- Besides the already present.obj - files, use at least
+	//	- Besides the already present.obj - files, use at least
+
 
 	Material shiny = {
 		glm::vec3(0.0f, 0.0f, 0.0f),
@@ -586,7 +587,7 @@ void InitObjects()
 	flat = glm::rotate(flat, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	flat = glm::translate(flat, glm::vec3(-5.0f, 0.1f, 25.0f));
 	// flat = glm::scale(flat, glm::vec3(.03f, .03f, .0f));
-	models.emplace_back("objects/Uv-mapped-3ds-house-v2.obj", "textures/Uv-template-3ds-house.bmp", matte, flat);
+	models.emplace_back("objects/Uv-mapped-3ds-house-v2.obj", "textures/Uv-template-3ds-house_001.bmp", matte, flat);
 
 	// LAKE
 	glm::mat4 lake = glm::mat4();
@@ -596,17 +597,17 @@ void InitObjects()
 
 
 	glm::mat4 skybox = glm::mat4();
-	skybox = glm::translate(skybox, glm::vec3(0.0f,-30.0f, 0.0f));
-	skybox = glm::scale(skybox, glm::vec3(1.5f,1.5f, 1.5f));
-	models.emplace_back("objects/skybox.obj", "textures/skybox_4.bmp", matte , skybox);
+	skybox = glm::translate(skybox, glm::vec3(0.0f, -30.0f, 0.0f));
+	skybox = glm::scale(skybox, glm::vec3(1.5f, 1.5f, 1.5f));
+	models.emplace_back("objects/skybox.obj", "textures/skybox_4.bmp", matte, skybox);
 
 
-	#pragma region Lamps_and_highway
+#pragma region Lamps_and_highway
 	glm::mat4 lamp_and_planes_starting_point = glm::mat4();
 	lamp_and_planes_starting_point = glm::translate(lamp_and_planes_starting_point, glm::vec3(-69.0f, 0.0f, 0.0f));
 
 	int cnt = 22;
-	
+
 	int lamp_count = 1.75 * cnt;
 	glm::mat4 lamp_starting_point = lamp_and_planes_starting_point;
 	lamp_starting_point = glm::translate(lamp_starting_point, glm::vec3(-30.0f, 0.0f, 0.0f));
@@ -614,9 +615,9 @@ void InitObjects()
 	int plane_count = cnt;
 	glm::mat4 plane_starting_point = lamp_and_planes_starting_point;
 
-	
+
 	// STREET_LAMPS
-	#pragma region STREET_LAMPS
+#pragma region STREET_LAMPS
 	glm::mat4 street_lamp = lamp_starting_point;
 	float sf = 100.0f;
 	// street_lamp = glm::translate(street_lamp, glm::vec3(0.0f, 0.0f, -1000.0f));
@@ -624,7 +625,7 @@ void InitObjects()
 	street_lamp = glm::rotate(street_lamp, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 
 	street_lamp = glm::scale(street_lamp, glm::vec3(sf, sf, sf));
-	for (float i = 0; i < lamp_count; i+=2)
+	for (float i = 0; i < lamp_count; i += 2)
 	{
 
 		street_lamp = glm::translate(street_lamp, glm::vec3(0.05 * 2, 0.0f, 0.0f));
@@ -636,17 +637,17 @@ void InitObjects()
 	street_lamp = glm::rotate(street_lamp, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 	street_lamp = glm::translate(street_lamp, glm::vec3(-5.0f + (lamp_count * -5), 30.0f, 0.0f));
 	street_lamp = glm::scale(street_lamp, glm::vec3(sf, sf, sf));
-	
-	for (float i = 0; i < lamp_count; i+= 2)
+
+	for (float i = 0; i < lamp_count; i += 2)
 	{
 
 		street_lamp = glm::translate(street_lamp, glm::vec3(0.05 * 2, 0.0f, 0.0f));
 		models.emplace_back("objects/obj_pack/svet/svet_11.obj", "textures/XOndergrond.bmp", shiny, street_lamp);
 	}
-	#pragma endregion
+#pragma endregion
 
 	// // HIGHWAY
-	#pragma region HIGHWAY
+#pragma region HIGHWAY
 	glm::mat4 plane = plane_starting_point;
 	plane = glm::translate(plane, glm::vec3(-30.0f, 0.1f, 29.5f));
 	plane = glm::rotate(plane, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -656,26 +657,26 @@ void InitObjects()
 		plane = glm::translate(plane, glm::vec3(0.0f, 0.0f, 3.75f));
 		models.emplace_back("objects/plane/plane.obj", "objects/plane/Material_2.bmp", matte, plane);
 	}
-	#pragma endregion
-	#pragma endregion
+#pragma endregion
+#pragma endregion
 }
 
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
-    InitGlutGlew(argc, argv);
-    InitShaders();
+	InitGlutGlew(argc, argv);
+	InitShaders();
 	InitObjects();
 	InitMatrices();
-    InitBuffers();
+	InitBuffers();
 
-/*
-    glEnable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-*/
-    HWND hWnd = GetConsoleWindow();
-    ShowWindow(hWnd, SW_SHOW);
+	/*
+		glEnable(GL_DEPTH_TEST);
+		glDisable(GL_CULL_FACE);
+	*/
+	HWND hWnd = GetConsoleWindow();
+	ShowWindow(hWnd, SW_SHOW);
 
-    glutMainLoop();
+	glutMainLoop();
 
-    return 0;
+	return 0;
 }
