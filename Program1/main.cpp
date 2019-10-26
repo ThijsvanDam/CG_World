@@ -202,8 +202,8 @@ void InitCameras() {
 	cameras[int(CameraMode::View)] = { viewCameraEye, viewCameraCenter };
 
 	// Walk camera definition, this one is dynamic!
-	glm::vec3 walkCameraEye = { 0.0f, 3.5f, 6.0f };
-	glm::vec3 walkCameraCenter = { 0.0f, -1.0f, 0.0f };
+	glm::vec3 walkCameraEye = { -70.0f, 3.5f,11.0f };
+	glm::vec3 walkCameraCenter = { 5.0f, -0.1f, 0.1f };
 	cameras[int(CameraMode::Walk)] = { walkCameraEye, walkCameraCenter };
 
 	camera = &cameras[int(cameraMode)];
@@ -235,6 +235,7 @@ void switchCameraMode()
 //--------------------------------------------------------------------------------
 float z = 15.0;
 float offset = 0.5;
+int cnt = 0;
 
 void Render()
 {
@@ -263,12 +264,18 @@ void Render()
 	glUseProgram(shader_id);
 
 	// Do transformation
-
 	for (int i = 0; i < models.size(); ++i)
 	{
 
-		if (i == 0)
-			models[i].model = glm::rotate(models[i].model, 0.01f, glm::vec3(0.0f, 1.0f, 0.0f));
+		if (i == 0){
+			if(cnt < 100)
+			{
+				models[i].model = glm::translate(models[i].model, glm::vec3(0.0f, 0.2f * cnt, 0.0f));
+			}else if(cnt >= 100 && cnt < 2000)
+			{
+				models[i].model = glm::translate(models[i].model, glm::vec3(0.0f, 0.0f, (0.3f*(cnt - 100.0f))));
+			}
+		}
 		// if(i==0 || i==1 || i==2)
 		// {
 		// 	models[i].model = glm::translate(models[i].model, glm::vec3(0.0f, 0.0f, 0.1f));
@@ -290,6 +297,8 @@ void Render()
 		glDrawArrays(GL_TRIANGLES, 0, models[i].vertices.size());
 		glBindVertexArray(0);
 	}
+
+	cnt += 1;
 	glutSwapBuffers();
 }
 
@@ -570,17 +579,18 @@ void InitObjects()
 	};
 
 	// TEAPOT
-	glm::mat4 teapotMatrix = glm::mat4();
-	teapotMatrix = glm::translate(teapotMatrix, glm::vec3(0.6f, 2.8f, 0.0f));
-	float scaleFactor = 3.0f;
-	teapotMatrix = glm::scale(teapotMatrix, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
-	models.emplace_back("objects/teapot.obj", "textures/XOndergrond.bmp", shiny, teapotMatrix);
+	glm::mat4 helicopter = glm::mat4();
+	float scaleFactor = .025f;
+	helicopter = glm::translate(helicopter, glm::vec3(45.0f, 4.7f, 53.0f));
+	helicopter = glm::scale(helicopter, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
+	helicopter = glm::rotate(helicopter, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	models.emplace_back("objects/MI28.obj", "textures/MI28/mi28.bmp", matte, helicopter);
 
 	// FLOOR
-	glm::mat4 floorMatrix = glm::mat4();
-	floorMatrix = glm::translate(floorMatrix, glm::vec3(0.0f, -1.0f, 0.0f));
-	floorMatrix = glm::scale(floorMatrix, glm::vec3(200.0f, 1.0f, 200.0f));
-	models.emplace_back("objects/box.obj", "textures/grass.bmp", matte, floorMatrix);
+	glm::mat4 floor = glm::mat4();
+	floor = glm::translate(floor, glm::vec3(0.0f, -1.0f, 0.0f));
+	floor = glm::scale(floor, glm::vec3(200.0f, 1.0f, 200.0f));
+	models.emplace_back("objects/box.obj", "textures/grass.bmp", matte, floor);
 
 	// CREATED_MODEL_FLAT
 	glm::mat4 flat = glm::mat4();
