@@ -228,7 +228,12 @@ void switchCameraMode()
 	printCamera(*camera);
 }
 
-
+enum HeliAnim {
+	Ascend = 1,
+	Accelerate = 2,
+	TurnLeft = 3,
+	Forward = 4
+};
 
 //--------------------------------------------------------------------------------
 // Rendering
@@ -236,6 +241,7 @@ void switchCameraMode()
 float z = 15.0;
 float offset = 0.5;
 int cnt = 0;
+HeliAnim helicopterAnimation = HeliAnim::Ascend;
 
 void Render()
 {
@@ -268,20 +274,50 @@ void Render()
 	{
 
 		if (i == 0){
-			if(cnt < 100)
+			switch(helicopterAnimation)
 			{
+				
+			case HeliAnim::Ascend:
 				models[i].model = glm::translate(models[i].model, glm::vec3(0.0f, 0.2f * cnt, 0.0f));
-			}else if(cnt >= 100 && cnt < 2000)
-			{
-				models[i].model = glm::translate(models[i].model, glm::vec3(0.0f, 0.0f, (0.3f*(cnt - 100.0f))));
+				if(cnt == 130)
+				{
+					helicopterAnimation = HeliAnim::Accelerate;
+					cnt = 0;
+				}
+				break;
+				
+			case HeliAnim::Accelerate:
+				models[i].model = glm::translate(models[i].model, glm::vec3(0.0f, 0.0f, (0.3f*cnt)));
+				if (cnt == 150)
+				{
+					helicopterAnimation = HeliAnim::TurnLeft;
+					cnt = 0;
+				}
+				break;
+				
+			case HeliAnim::TurnLeft:
+
+				models[i].model = glm::translate(models[i].model, glm::vec3(0.0f, 0.0f, (30)));
+				models[i].model = glm::rotate(models[i].model, glm::radians(1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+				if (cnt == 90)
+				{
+					helicopterAnimation = HeliAnim::Forward;
+					cnt = 0;
+				}
+				break;
+				
+			case HeliAnim::Forward:
+				models[i].model = glm::translate(models[i].model, glm::vec3(0.0f, 0.0f, (30)));
+				if (cnt == 120)
+				{
+					helicopterAnimation = HeliAnim::TurnLeft;
+					cnt = 0;
+				}
+				break;
+				
 			}
 		}
-		// if(i==0 || i==1 || i==2)
-		// {
-		// 	models[i].model = glm::translate(models[i].model, glm::vec3(0.0f, 0.0f, 0.1f));
-		// }
-		//
-
+		
 		models[i].mv = view * models[i].model;
 
 		glUniform1i(uniform_apply_texture, models[i].material.materialId);
@@ -490,73 +526,13 @@ void InitBuffers()
 		glBindVertexArray(0);
 
 	}
-	////**************************** old InitBuffer
-
-	//GLuint vbo_colors;
-
- //   GLuint ibo_elements;
-
- //   // vbo for vertices
- //   glGenBuffers(1, &vbo_vertices);
- //   glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
- //   glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
- //   glBindBuffer(GL_ARRAY_BUFFER, 0);
-
- //   // vbo for colors
- //   glGenBuffers(1, &vbo_colors);
- //   glBindBuffer(GL_ARRAY_BUFFER, vbo_colors);
- //   glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
- //   glBindBuffer(GL_ARRAY_BUFFER, 0);
-
- //   // vbo for elements
- //   glGenBuffers(1, &ibo_elements);
- //   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_elements);
- //   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(cube_elements),
- //       cube_elements, GL_STATIC_DRAW);
- //   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
- //   // Get vertex attributes
- //   position_id = glGetAttribLocation(shader_id, "position");
- //   color_id = glGetAttribLocation(shader_id, "color");
-
- //   // Allocate memory for vao
- //   glGenVertexArrays(1, &vao);
-
- //   // Bind to vao
- //   glBindVertexArray(vao);
-
- //   // Bind vertices to vao
- //   glBindBuffer(GL_ARRAY_BUFFER, vbo_vertices);
- //   glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
- //   glEnableVertexAttribArray(position_id);
- //   glBindBuffer(GL_ARRAY_BUFFER, 0);
-
- //   // Bind colors to vao
- //   glBindBuffer(GL_ARRAY_BUFFER, vbo_colors);
- //   glVertexAttribPointer(color_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
- //   glEnableVertexAttribArray(color_id);
- //   glBindBuffer(GL_ARRAY_BUFFER, 0);
-
- //   // Bind elements to vao
- //   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_elements);
- //   
- //   // Stop bind to vao
- //   glBindVertexArray(0);
-
- //   // Make uniform var
- //   uniform_mvp = glGetUniformLocation(shader_id, "mvp");
-
- //   // Fill uniform var
- //   glUniformMatrix4fv(uniform_mvp, 1, GL_FALSE, glm::value_ptr(mvp));
 }
 
 void InitObjects()
 {
 	// LIGHT
 	light.position = glm::vec3(4.0, 4.0, 4.0);
-
-
-
+	
 	// o Some basic geometries are already present on ELO: box.obj, cylinder18.obj, cylinder32.obj, sphere.obj, torus.obj
 	//	- Besides the already present.obj - files, use at least
 
@@ -571,17 +547,28 @@ void InitObjects()
 
 	Material matte = {
 		glm::vec3(0.0f, 0.0f, 0.0f),
-		// glm::vec3(-0.3f, -0.3f, -0.3f),
 		glm::vec3(0.1f, 0.1f, 0.1f),
 		glm::vec3(0.0),
 		128,
 		0
 	};
 
-	// TEAPOT
+	Material water = {
+		glm::vec3(0.0f, 0.0f, 0.0f),
+		glm::vec3(0.2f, 0.2f, 0.2f),
+		glm::vec3(0.2f),
+		128,
+		2
+	};
+
+	/* 
+	 *  
+	 */
+	
+	// HELI
 	glm::mat4 helicopter = glm::mat4();
 	float scaleFactor = .025f;
-	helicopter = glm::translate(helicopter, glm::vec3(45.0f, 4.7f, 53.0f));
+	helicopter = glm::translate(helicopter, glm::vec3(-35.0f, 4.7f, 83.0f));
 	helicopter = glm::scale(helicopter, glm::vec3(scaleFactor, scaleFactor, scaleFactor));
 	helicopter = glm::rotate(helicopter, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 	models.emplace_back("objects/MI28.obj", "textures/MI28/mi28.bmp", matte, helicopter);
@@ -603,16 +590,15 @@ void InitObjects()
 	glm::mat4 lake = glm::mat4();
 	lake = glm::translate(lake, glm::vec3(-30.0f, -65.4667f, 90.0f));
 	lake = glm::scale(lake, glm::vec3(0.03, 10.1f, 0.03));
-	models.emplace_back("objects/lake/lake.obj", "textures/lake.bmp", shiny, lake);
-
+	models.emplace_back("objects/lake/lake.obj", "textures/lake.bmp", water, lake);
 
 	glm::mat4 skybox = glm::mat4();
 	skybox = glm::translate(skybox, glm::vec3(0.0f, -30.0f, 0.0f));
 	skybox = glm::scale(skybox, glm::vec3(1.5f, 1.5f, 1.5f));
-	models.emplace_back("objects/skybox.obj", "textures/skybox_4.bmp", matte, skybox);
+	models.emplace_back("objects/skybox.obj", "textures/skybox_5.bmp", matte, skybox);
 
 
-#pragma region Lamps_and_highway
+	#pragma region Lamps_and_highway
 	glm::mat4 lamp_and_planes_starting_point = glm::mat4();
 	lamp_and_planes_starting_point = glm::translate(lamp_and_planes_starting_point, glm::vec3(-69.0f, 0.0f, 0.0f));
 
@@ -627,7 +613,7 @@ void InitObjects()
 
 
 	// STREET_LAMPS
-#pragma region STREET_LAMPS
+	#pragma region STREET_LAMPS
 	glm::mat4 street_lamp = lamp_starting_point;
 	float sf = 100.0f;
 	// street_lamp = glm::translate(street_lamp, glm::vec3(0.0f, 0.0f, -1000.0f));
@@ -654,10 +640,10 @@ void InitObjects()
 		street_lamp = glm::translate(street_lamp, glm::vec3(0.05 * 2, 0.0f, 0.0f));
 		models.emplace_back("objects/obj_pack/svet/svet_11.obj", "textures/XOndergrond.bmp", shiny, street_lamp);
 	}
-#pragma endregion
+	#pragma endregion
 
 	// // HIGHWAY
-#pragma region HIGHWAY
+	#pragma region HIGHWAY
 	glm::mat4 plane = plane_starting_point;
 	plane = glm::translate(plane, glm::vec3(-30.0f, 0.1f, 29.5f));
 	plane = glm::rotate(plane, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -667,8 +653,8 @@ void InitObjects()
 		plane = glm::translate(plane, glm::vec3(0.0f, 0.0f, 3.75f));
 		models.emplace_back("objects/plane/plane.obj", "objects/plane/Material_2.bmp", matte, plane);
 	}
-#pragma endregion
-#pragma endregion
+	#pragma endregion
+	#pragma endregion
 }
 
 int main(int argc, char** argv)
